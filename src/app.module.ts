@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EnvVault } from './vault/env.vault';
 import { RedisHelperModule } from './redis/redis_helper.module';
@@ -16,7 +14,5 @@ import { RedisHelperModule } from './redis/redis_helper.module';
     }),
     RedisHelperModule.register(),
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
