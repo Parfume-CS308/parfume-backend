@@ -14,7 +14,7 @@ This is a backend for a perfume shop. It is a RESTful API that allows users to c
 ### Install Dependencies
 Make sure you've installed the Node.js and Yarn. You can install the dependencies by running the following command in the root directory of the project:
 ```bash
-yarn
+yarn install
 ```
 
 ### Environment Variables
@@ -35,6 +35,13 @@ You can go to the services directory and in there you will find an another direc
 ```bash
 docker-compose up --build -d
 ```
+
+### Start the Server
+You can start the server by running the following command in the root directory of the project:
+```bash
+yarn start:dev
+```
+This will start the server in development mode, you will see the logs in the console.
 
 ### Create or Re-Create the Secret Keys
 We have total of 2 certificates to create the authentication base, since we have access and refresh tokens. To create the certificates, you can run the following command in the root directory of the project:
