@@ -11,6 +11,31 @@ This is a backend for a perfume shop. It is a RESTful API that allows users to c
 
 ## Installation
 
+### Install Dependencies
+Make sure you've installed the Node.js and Yarn. You can install the dependencies by running the following command in the root directory of the project:
+```bash
+yarn
+```
+
+### Environment Variables
+You will find them in the `.env.development` file.
+
+### Other Dependencies
+- MongoDB
+- Redis
+
+### MongoDB Installation
+You can go to the services directory and in there you will find an another directory which is called `mongodb`. In there you will find a `docker-compose.yml` file. You can run the following command in the root directory of the project to start the MongoDB service:
+```bash
+docker-compose up --build -d
+```
+
+### Redis Installation
+You can go to the services directory and in there you will find an another directory which is called `redis`. In there you will find a `docker-compose.yml` file. You can run the following command in the root directory of the project to start the Redis service:
+```bash
+docker-compose up --build -d
+```
+
 ### Create or Re-Create the Secret Keys
 We have total of 2 certificates to create the authentication base, since we have access and refresh tokens. To create the certificates, you can run the following command in the root directory of the project:
 
