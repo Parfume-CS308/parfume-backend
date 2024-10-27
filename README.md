@@ -2,6 +2,7 @@
 
 ## Disclaimer
 All secrets and envs used in this project are for development purposes only. Do not use them in production, and they will not  be used in production.
+
 *GitGuardian has been used to scan the repository for any secrets that may have been accidentally committed, it can give some errors for the certs directory, it's not a problem for us*
 
 ## Description
