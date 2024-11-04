@@ -39,7 +39,7 @@ docker-compose up --build -d
 ### Start the Server
 You can start the server by running the following command in the root directory of the project:
 ```bash
-yarn start:dev
+npm run start:dev
 ```
 This will start the server in development mode, you will see the logs in the console.
 
