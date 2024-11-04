@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
+import * as compression from 'compression';
+import { AppModule } from './app.module';
 import { EnvVault } from './vault/env.vault';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -15,6 +17,8 @@ async function bootstrap() {
       forbidUnknownValues: false,
     }),
   );
+  app.use(cookieParser());
+  app.use(compression());
   const config = new DocumentBuilder()
     .setTitle('CS308 Parfume Backend Service')
     .setDescription('CS308 Parfume Backend API Documentation')

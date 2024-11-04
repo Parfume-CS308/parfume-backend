@@ -30,4 +30,10 @@ export class EnvVault {
 
   static REFRESH_TOKEN_SECRET_PATH: string =
     process.env.REFRESH_TOKEN_SECRET_PATH;
+
+  static ACCESS_TOKEN_PUBLIC_KEY_PATH: string =
+    process.env.ACCESS_TOKEN_PUBLIC_KEY_PATH;
+
+  static REFRESH_TOKEN_PUBLIC_KEY_PATH: string =
+    process.env.REFRESH_TOKEN_PUBLIC_KEY_PATH;
 }

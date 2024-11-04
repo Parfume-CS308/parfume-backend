@@ -10,7 +10,9 @@ export declare global {
       ACCESS_TOKEN_LIFE: string;
       REFRESH_TOKEN_LIFE: string;
       ACCESS_TOKEN_SECRET_PATH: string;
+      ACCESS_TOKEN_PUBLIC_KEY_PATH: string;
       REFRESH_TOKEN_SECRET_PATH: string;
+      REFRESH_TOKEN_PUBLIC_KEY_PATH: string;
     }
   }
 }
