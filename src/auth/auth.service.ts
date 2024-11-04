@@ -1,12 +1,14 @@
 // auth.service.ts
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { compare } from 'bcryptjs';
+import { compare, hash } from 'bcryptjs';
 import { User } from '../entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { EnvVault } from 'src/vault/env.vault';
@@ -14,6 +16,7 @@ import { KeyVault } from 'src/vault/key.vault';
 import { JwtService } from '@nestjs/jwt';
 import { ValidateUserInterface } from './interfaces/validate-user';
 import { LoginResponse } from './interfaces/login-user';
+import { SignUpDto } from './dto/sign-up.dto';
 
 @Injectable()
 export class AuthService {
@@ -88,6 +91,49 @@ export class AuthService {
         throw error;
       }
       throw new InternalServerErrorException();
+    }
+  }
+
+  async signup(signUpDto: SignUpDto): Promise<LoginResponse> {
+    try {
+      const { email, password, firstName, lastName, age, gender } = signUpDto;
+
+      // Hash password
+      const hashedPassword = await hash(password, 10);
+
+      // Create new user
+      const newUser = await this.UserModel.create({
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        age,
+        gender,
+        active: true,
+      });
+
+      Logger.log(`User created: ${newUser.email}`, 'AuthService');
+      const stringifiedId = newUser._id.toString();
+      const tokens = await this.generateAuthTokens(stringifiedId, email);
+      Logger.log(`Tokens generated for user: ${newUser.email}`, 'AuthService');
+      return {
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        user: {
+          id: stringifiedId,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          age: newUser.age,
+          gender: newUser.gender,
+        },
+      };
+    } catch (error) {
+      console.error(error);
+      if (error.code === 11000) {
+        throw new BadRequestException('Email already exists');
+      }
+      throw new InternalServerErrorException('Error creating user');
     }
   }
 
