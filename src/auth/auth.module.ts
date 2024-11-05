@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from '../entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { IsUserAlreadyExist } from './validators/user-exists.validator';
+import { AuthGuard } from 'src/guards/auth.guard';
 
 @Module({
   imports: [
@@ -17,6 +18,6 @@ import { IsUserAlreadyExist } from './validators/user-exists.validator';
     JwtModule.register({}),
   ],
   controllers: [AuthController],
-  providers: [AuthService, IsUserAlreadyExist],
+  providers: [AuthService, IsUserAlreadyExist, AuthGuard],
 })
 export class AuthModule {}

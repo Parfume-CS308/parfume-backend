@@ -10,6 +10,8 @@ import {
   UnauthorizedException,
   InternalServerErrorException,
   Logger,
+  Get,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -27,6 +29,8 @@ import { EnvVault } from 'src/vault/env.vault';
 import { LoginResponse } from './models/login.response';
 import { SignUpResponse } from './models/signup.response';
 import { SignUpDto } from './dto/sign-up.dto';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { User } from 'src/decorators/user.decorator';
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -174,5 +178,31 @@ export class AuthController {
       }
       throw new InternalServerErrorException();
     }
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: 'Get current user',
+    description: 'Get authenticated user details and refresh tokens',
+  })
+  @ApiOkResponse({
+    description: 'Returns current user details',
+    type: LoginResponse,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User is not authenticated',
+    type: UnauthorizedException,
+  })
+  async getCurrentUser(
+    @User() user: any,
+    @Res() res: Response,
+  ): Promise<Response<LoginResponse>> {
+    const userData = await this.authService.getUserDetails(user.id);
+
+    return res.json({
+      message: 'User details retrieved successfully',
+      user: userData,
+    });
   }
 }

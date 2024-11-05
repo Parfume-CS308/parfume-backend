@@ -189,4 +189,23 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
+
+  async getUserDetails(userId: string) {
+    const user = await this.UserModel.findById(userId, {
+      password: 0,
+    }).lean();
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      age: user.age,
+      gender: user.gender,
+    };
+  }
 }
