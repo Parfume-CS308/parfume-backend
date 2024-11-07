@@ -27,6 +27,17 @@ export class User extends Document {
 
   @Prop({ default: true })
   active: boolean;
+
+  @Prop([String])
+  shippingAddresses: string[];
+
+  @Prop()
+  phoneNumber: string;
+
+  @Prop({
+    required: true,
+  })
+  role: 'customer' | 'sales_manager' | 'product_manager' | 'admin';
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
