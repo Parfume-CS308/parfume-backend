@@ -14,9 +14,14 @@ import { LoginDto } from './dto/login.dto';
 import { EnvVault } from 'src/vault/env.vault';
 import { KeyVault } from 'src/vault/key.vault';
 import { JwtService } from '@nestjs/jwt';
-import { ValidateUserInterface } from './interfaces/validate-user';
-import { LoginResponse } from './interfaces/login-user';
 import { SignUpDto } from './dto/sign-up.dto';
+import {
+  AuthenticateUserResponse,
+  AuthTokenPayload,
+  AuthTokens,
+  UserBasicInfo,
+} from './interfaces/auth-types';
+import { UserRoleEnum } from 'src/enums/entity.enums';
 
 @Injectable()
 export class AuthService {
@@ -26,14 +31,13 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(
-    email: string,
-    password: string,
-  ): Promise<ValidateUserInterface> {
+  async validateUser(email: string, password: string): Promise<UserBasicInfo> {
     const user = await this.UserModel.findOne(
       { email },
       {
         _id: 1,
+        email: 1,
+        role: 1,
         password: 1,
         active: 1,
         firstName: 1,
@@ -58,32 +62,33 @@ export class AuthService {
       );
     }
     return {
-      _id: user._id as Types.ObjectId,
+      id: (user._id as Types.ObjectId).toHexString(),
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
       age: user.age,
       gender: user.gender,
+      role: user.role,
     };
   }
 
-  async login(loginDto: LoginDto): Promise<LoginResponse> {
+  async login(loginDto: LoginDto): Promise<AuthenticateUserResponse> {
     try {
       const { email, password } = loginDto;
       const user = await this.validateUser(email, password);
-      const stringifiedId = user._id.toString();
-      const tokens = await this.generateAuthTokens(stringifiedId, email);
+      const tokens = await this.generateAuthTokens(user.id, email, user.role);
 
       return {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         user: {
-          id: stringifiedId,
+          id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
           age: user.age,
           gender: user.gender,
+          role: user.role,
         },
       };
     } catch (error) {
@@ -94,7 +99,7 @@ export class AuthService {
     }
   }
 
-  async signup(signUpDto: SignUpDto): Promise<LoginResponse> {
+  async signup(signUpDto: SignUpDto): Promise<AuthenticateUserResponse> {
     try {
       const { email, password, firstName, lastName, age, gender } = signUpDto;
 
@@ -110,11 +115,16 @@ export class AuthService {
         age,
         gender,
         active: true,
+        role: UserRoleEnum.CUSTOMER,
       });
 
       Logger.log(`User created: ${newUser.email}`, 'AuthService');
       const stringifiedId = newUser._id.toString();
-      const tokens = await this.generateAuthTokens(stringifiedId, email);
+      const tokens = await this.generateAuthTokens(
+        stringifiedId,
+        email,
+        UserRoleEnum.CUSTOMER,
+      );
       Logger.log(`Tokens generated for user: ${newUser.email}`, 'AuthService');
       return {
         access_token: tokens.access_token,
@@ -126,6 +136,7 @@ export class AuthService {
           lastName: newUser.lastName,
           age: newUser.age,
           gender: newUser.gender,
+          role: newUser.role,
         },
       };
     } catch (error) {
@@ -137,11 +148,16 @@ export class AuthService {
     }
   }
 
-  async generateAuthTokens(id: string, email: string) {
+  async generateAuthTokens(
+    id: string,
+    email: string,
+    role: UserRoleEnum,
+  ): Promise<AuthTokens> {
     const access_token = await this.jwtService.signAsync(
       {
         id,
         email,
+        role,
       },
       {
         algorithm: 'RS256',
@@ -154,6 +170,7 @@ export class AuthService {
       {
         id,
         email,
+        role,
       },
       {
         algorithm: 'RS256',
@@ -168,7 +185,7 @@ export class AuthService {
     };
   }
 
-  async validateAccessToken(token: string) {
+  async validateAccessToken(token: string): Promise<AuthTokenPayload> {
     try {
       const payload = await this.jwtService.verifyAsync(token, {
         publicKey: KeyVault.ACCESS_TOKEN_PUBLIC,
@@ -179,7 +196,7 @@ export class AuthService {
     }
   }
 
-  async validateRefreshToken(token: string) {
+  async validateRefreshToken(token: string): Promise<AuthTokenPayload> {
     try {
       const payload = await this.jwtService.verifyAsync(token, {
         publicKey: KeyVault.REFRESH_TOKEN_PUBLIC,
@@ -190,7 +207,7 @@ export class AuthService {
     }
   }
 
-  async getUserDetails(userId: string) {
+  async getUserDetails(userId: string): Promise<UserBasicInfo> {
     const user = await this.UserModel.findById(userId, {
       password: 0,
     }).lean();
@@ -206,6 +223,7 @@ export class AuthService {
       lastName: user.lastName,
       age: user.age,
       gender: user.gender,
+      role: user.role,
     };
   }
 }

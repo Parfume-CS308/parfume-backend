@@ -1,6 +1,6 @@
 // response/login.response.ts
 import { ApiProperty } from '@nestjs/swagger';
-import { LoginUserResponse } from '../interfaces/login-user';
+import { UserBasicInfo } from '../interfaces/auth-types';
 
 export class LoginResponse {
   @ApiProperty({
@@ -18,7 +18,8 @@ export class LoginResponse {
       lastName: 'Doe',
       age: 30,
       gender: 'male',
+      role: 'customer',
     },
   })
-  user: LoginUserResponse;
+  user: UserBasicInfo;
 }

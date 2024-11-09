@@ -2,6 +2,11 @@ import { Prop } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Perfume } from './perfume.entity';
 import { User } from './user.entity';
+import { Campaign } from './campaign.entity';
+import {
+  OrderPaymentStatusEnum,
+  OrderStatusEnum,
+} from 'src/enums/entity.enums';
 
 export class Order extends Document {
   @Prop({ type: Types.ObjectId, ref: 'users', required: true })
@@ -27,24 +32,51 @@ export class Order extends Document {
   @Prop({ required: true })
   totalAmount: number;
 
+  @Prop({ type: [Types.ObjectId], ref: 'campaigns' })
+  appliedCampaigns?: Campaign[];
+
+  @Prop({ default: 0 })
+  campaignDiscountAmount: number;
+
   @Prop({
-    enum: ['processing', 'in-transit', 'delivered'],
-    default: 'processing',
+    required: true,
+    enum: [
+      OrderStatusEnum.PROCESSING,
+      OrderStatusEnum.IN_TRANSIT,
+      OrderStatusEnum.DELIVERED,
+      OrderStatusEnum.REFUNDED,
+    ],
+    default: OrderStatusEnum.PROCESSING,
   })
-  status: string;
+  status: OrderStatusEnum;
 
   @Prop({ required: true })
   shippingAddress: string;
 
-  @Prop({ required: true })
-  paymentStatus: string; // pending, completed, failed
+  @Prop({
+    required: true,
+    enum: [
+      OrderPaymentStatusEnum.PENDING,
+      OrderPaymentStatusEnum.COMPLETED,
+      OrderPaymentStatusEnum.FAILED,
+      OrderPaymentStatusEnum.REFUNDED,
+    ],
+    default: OrderPaymentStatusEnum.PENDING,
+  })
+  paymentStatus: OrderPaymentStatusEnum;
 
-  @Prop()
-  paymentId: string;
+  @Prop({
+    required: true,
+  })
+  paymentId: string; // would be a uuid
 
-  @Prop()
-  invoiceNumber: string;
+  @Prop({
+    required: true,
+  })
+  invoiceNumber: string; // would be a short id, e.g., INV-1234
 
-  @Prop()
+  @Prop({
+    required: true,
+  })
   invoiceUrl: string; // URL to stored PDF invoice
 }

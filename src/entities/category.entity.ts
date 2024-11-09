@@ -1,5 +1,6 @@
 import { Prop, Schema } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
+import { Perfume } from './perfume.entity';
 
 @Schema({
   timestamps: true,
@@ -14,4 +15,10 @@ export class Category extends Document {
 
   @Prop({ default: true })
   active: boolean;
+
+  @Prop({
+    type: [Types.ObjectId],
+    ref: 'perfumes',
+  })
+  perfumes: [Perfume];
 }

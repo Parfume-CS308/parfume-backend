@@ -31,6 +31,9 @@ import { SignUpResponse } from './models/signup.response';
 import { SignUpDto } from './dto/sign-up.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { User } from 'src/decorators/user.decorator';
+import { Roles } from 'src/decorators/role.decorator';
+import { RolesGuard } from 'src/guards/role.guard';
+import { AuthTokenPayload } from './interfaces/auth-types';
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -61,6 +64,10 @@ export class AuthController {
     @Res() res: Response,
   ): Promise<Response<LoginResponse>> {
     try {
+      Logger.log(
+        `User login attempt: ${loginDto.email}`,
+        'AuthController.login',
+      );
       const { access_token, refresh_token, user } =
         await this.authService.login(loginDto);
 
@@ -77,7 +84,7 @@ export class AuthController {
         sameSite: 'lax',
         path: '/',
       });
-
+      Logger.log(`User logged in: ${user.email}`, 'AuthController.login');
       return res.json({
         message: 'Login successful',
         user: {
@@ -87,6 +94,7 @@ export class AuthController {
           lastName: user.lastName,
           age: user.age,
           gender: user.gender,
+          role: user.role,
         },
       });
     } catch (error) {
@@ -140,6 +148,10 @@ export class AuthController {
     @Res() res: Response,
   ): Promise<Response<SignUpResponse>> {
     try {
+      Logger.log(
+        `User registration attempt: ${signUpDto.email}`,
+        'AuthController.signup',
+      );
       const { access_token, refresh_token, user } =
         await this.authService.signup(signUpDto);
 
@@ -170,6 +182,7 @@ export class AuthController {
           lastName: user.lastName,
           age: user.age,
           gender: user.gender,
+          role: user.role,
         },
       });
     } catch (error) {
@@ -181,7 +194,8 @@ export class AuthController {
   }
 
   @Get('me')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('customer', 'sales-manager', 'product-manager')
   @ApiOperation({
     summary: 'Get current user',
     description: 'Get authenticated user details and refresh tokens',
@@ -195,14 +209,39 @@ export class AuthController {
     type: UnauthorizedException,
   })
   async getCurrentUser(
-    @User() user: any,
+    @User() user: AuthTokenPayload,
     @Res() res: Response,
   ): Promise<Response<LoginResponse>> {
+    Logger.log(`User details requested: ${user.email}`, 'AuthController.me');
     const userData = await this.authService.getUserDetails(user.id);
-
+    Logger.log(`User details retrieved: ${user.email}`, 'AuthController.me');
     return res.json({
       message: 'User details retrieved successfully',
       user: userData,
     });
+  }
+
+  @Post('logout')
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: 'User logout',
+    description: 'Logout user and invalidate tokens',
+  })
+  @ApiOkResponse({
+    description: 'User successfully logged out',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User is not authenticated',
+    type: UnauthorizedException,
+  })
+  async logout(
+    @User() user: AuthTokenPayload,
+    @Res() res: Response,
+  ): Promise<Response> {
+    Logger.log(`User logout requested: ${user.email}`, 'AuthController.logout');
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
+    Logger.log(`User logged out: ${user.email}`, 'AuthController.logout');
+    return res.json({ message: 'User logged out successfully' });
   }
 }

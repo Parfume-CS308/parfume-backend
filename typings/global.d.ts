@@ -1,4 +1,10 @@
+import { Request } from 'express';
+import { AuthTokenPayload } from 'src/auth/interfaces/auth-types';
+
 export declare global {
+  interface AuthenticatedRequest extends Request {
+    user: AuthTokenPayload;
+  }
   namespace NodeJS {
     interface ProcessEnv {
       NODE_ENV: 'development' | 'staging' | 'production' | 'test';

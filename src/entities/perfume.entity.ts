@@ -38,11 +38,15 @@ export class Perfume extends Document {
   @Prop({ required: true })
   description: string;
 
-  @Prop({ required: true })
-  serialNumber: string;
+  @Prop({ type: Number, required: true })
+  serialNumber: number;
 
-  @Prop({ required: true })
-  warrantyStatus: boolean;
+  @Prop({
+    type: Number,
+    required: true,
+    default: 12,
+  })
+  warrantyStatus: boolean; // 12 months by default
 
   @Prop({ type: Types.ObjectId, ref: 'distributors' })
   distributor: Distributor;
@@ -53,6 +57,7 @@ export class Perfume extends Document {
   @Prop([
     {
       volume: { type: Number, required: true }, // mL (e.g., 50, 100, 150)
+      basePrice: { type: Number, required: true }, // Parfumun maaliyeti, karlilik orani bunun ve price arasindaki farktan hesaplanacak, $ (e.g., 30, 50, 70)
       price: { type: Number, required: true }, // $ (e.g., 50, 100, 150)
       stock: { type: Number, required: true }, // number of items in stock
       active: { type: Boolean, default: true }, // is this variant active?
@@ -60,6 +65,7 @@ export class Perfume extends Document {
   ])
   variants: Array<{
     volume: number;
+    basePrice: number;
     price: number;
     stock: number;
     active: boolean;

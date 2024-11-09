@@ -1,6 +1,6 @@
 // response/signup.response.ts
 import { ApiProperty } from '@nestjs/swagger';
-import { LoginUserResponse } from '../interfaces/login-user';
+import { UserBasicInfo } from '../interfaces/auth-types';
 
 export class SignUpResponse {
   @ApiProperty({
@@ -20,5 +20,5 @@ export class SignUpResponse {
       gender: 'male',
     },
   })
-  user: LoginUserResponse;
+  user: UserBasicInfo;
 }

@@ -1,6 +1,7 @@
 // src/entities/user.entity.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { UserRoleEnum } from 'src/enums/entity.enums';
 
 @Schema({
   timestamps: true,
@@ -36,8 +37,13 @@ export class User extends Document {
 
   @Prop({
     required: true,
+    enum: [
+      UserRoleEnum.CUSTOMER,
+      UserRoleEnum.SALES_MANAGER,
+      UserRoleEnum.PRODUCT_MANAGER,
+    ],
   })
-  role: 'customer' | 'sales_manager' | 'product_manager' | 'admin';
+  role: UserRoleEnum;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
