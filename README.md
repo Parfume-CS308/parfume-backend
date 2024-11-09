@@ -14,7 +14,7 @@ This is a backend for a perfume shop. It is a RESTful API that allows users to c
 ### Install Dependencies
 Make sure you've installed the Node.js and Yarn. You can install the dependencies by running the following command in the root directory of the project:
 ```bash
-yarn install
+npm install
 ```
 
 ### Environment Variables
