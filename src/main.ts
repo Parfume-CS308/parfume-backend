@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 import { EnvVault } from './vault/env.vault';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { SeedService } from './seed/seed.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -19,6 +20,9 @@ async function bootstrap() {
   );
   app.use(cookieParser());
   app.use(compression());
+
+  const seeder = app.get(SeedService);
+  await seeder.seed();
   const config = new DocumentBuilder()
     .setTitle('CS308 Parfume Backend Service')
     .setDescription('CS308 Parfume Backend API Documentation')

@@ -4,6 +4,9 @@ import { EnvVault } from './vault/env.vault';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from './jwt/jwt.module';
 import { User, UserSchema } from './entities/user.entity';
+import { SeedModule } from './seed/seed.module';
+import { PerfumeModule } from './perfume/perfume.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -24,6 +27,9 @@ import { User, UserSchema } from './entities/user.entity';
     // RedisHelperModule.register(),
     AuthModule,
     JwtModule,
+    SeedModule,
+    PerfumeModule,
+    CategoryModule,
   ],
 })
 export class AppModule {}

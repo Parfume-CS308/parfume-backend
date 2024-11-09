@@ -22,6 +22,7 @@ import {
   UserBasicInfo,
 } from './interfaces/auth-types';
 import { UserRoleEnum } from 'src/enums/entity.enums';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class AuthService {
@@ -225,5 +226,34 @@ export class AuthService {
       gender: user.gender,
       role: user.role,
     };
+  }
+
+  async updateProfile(
+    userId: string,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<void> {
+    const { password, firstName, lastName, age, gender } = updateProfileDto;
+    let isPasswordChanged = false;
+    if (password !== '') {
+      isPasswordChanged = true;
+    }
+    if (isPasswordChanged) {
+      const hashedPassword = await hash(password, 10);
+
+      await this.UserModel.findByIdAndUpdate(userId, {
+        password: hashedPassword,
+        firstName,
+        lastName,
+        age,
+        gender,
+      });
+    } else {
+      await this.UserModel.findByIdAndUpdate(userId, {
+        firstName,
+        lastName,
+        age,
+        gender,
+      });
+    }
   }
 }

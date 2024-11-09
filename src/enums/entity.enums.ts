@@ -17,3 +17,9 @@ export enum UserRoleEnum {
   SALES_MANAGER = 'sales_manager',
   PRODUCT_MANAGER = 'product_manager',
 }
+
+export enum PerfumeTypeEnum {
+  EDP = 'edp',
+  EDT = 'edt',
+  PARFUM = 'parfum',
+}

@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Category } from './category.entity';
 import { Distributor } from './distributor.entity';
+import { PerfumeTypeEnum } from 'src/enums/entity.enums';
 
 @Schema({
   timestamps: true,
@@ -17,8 +18,12 @@ export class Perfume extends Document {
   @Prop()
   notes: string[];
 
-  @Prop({ required: true })
-  type: string; // edp/edt/parfum esans
+  @Prop({
+    enum: [PerfumeTypeEnum.EDP, PerfumeTypeEnum.EDT, PerfumeTypeEnum.PARFUM],
+    required: true,
+    default: PerfumeTypeEnum.EDP,
+  })
+  type: PerfumeTypeEnum;
 
   @Prop({ required: true })
   assetUrl: string;
@@ -73,12 +78,6 @@ export class Perfume extends Document {
 
   @Prop({ default: true })
   active: boolean;
-
-  @Prop({ default: 0 })
-  averageRating: number;
-
-  @Prop({ default: 0 })
-  numberOfRatings: number;
 
   @Prop({ default: 0 })
   totalSales: number;

@@ -34,6 +34,8 @@ import { User } from 'src/decorators/user.decorator';
 import { Roles } from 'src/decorators/role.decorator';
 import { RolesGuard } from 'src/guards/role.guard';
 import { AuthTokenPayload } from './interfaces/auth-types';
+import { MessageResponse } from './models/message.response';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -243,5 +245,53 @@ export class AuthController {
     res.clearCookie('refresh_token');
     Logger.log(`User logged out: ${user.email}`, 'AuthController.logout');
     return res.json({ message: 'User logged out successfully' });
+  }
+
+  @Post('update-profile')
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: 'Update user profile',
+    description: 'Update user profile details',
+  })
+  @ApiOkResponse({
+    description: 'User profile updated successfully',
+    type: MessageResponse,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User is not authenticated',
+    type: UnauthorizedException,
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid input provided',
+    type: BadRequestException,
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error occurred',
+    type: InternalServerErrorException,
+  })
+  async updateProfile(
+    @User() user: AuthTokenPayload,
+    @Body() updateProfileDto: UpdateProfileDto,
+    @Res() res: Response,
+  ): Promise<Response<MessageResponse>> {
+    try {
+      Logger.log(
+        `User profile update requested: ${user.email}`,
+        'AuthController.updateProfile',
+      );
+      await this.authService.updateProfile(user.id, updateProfileDto);
+      Logger.log(
+        `User profile updated: ${user.email}`,
+        'AuthController.updateProfile',
+      );
+      return res.json({
+        message: 'Profile information has been updated successfully',
+      });
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException();
+    }
   }
 }
