@@ -11,8 +11,8 @@ import { Model, Types } from 'mongoose';
 import { compare, hash } from 'bcryptjs';
 import { User } from '../entities/user.entity';
 import { LoginDto } from './dto/login.dto';
-import { EnvVault } from 'src/vault/env.vault';
-import { KeyVault } from 'src/vault/key.vault';
+import { EnvVault } from '../vault/env.vault';
+import { KeyVault } from '../vault/key.vault';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/sign-up.dto';
 import {
@@ -21,7 +21,7 @@ import {
   AuthTokens,
   UserBasicInfo,
 } from './interfaces/auth-types';
-import { UserRoleEnum } from 'src/enums/entity.enums';
+import { UserRoleEnum } from '../enums/entity.enums';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()

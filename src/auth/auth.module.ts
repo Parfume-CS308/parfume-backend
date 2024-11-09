@@ -5,7 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from '../entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { IsUserAlreadyExist } from './validators/user-exists.validator';
-import { AuthGuard } from 'src/guards/auth.guard';
+import { AuthGuard } from '../guards/auth.guard';
 
 @Module({
   imports: [

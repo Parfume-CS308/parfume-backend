@@ -3,10 +3,7 @@ import { Document, Types } from 'mongoose';
 import { Perfume } from './perfume.entity';
 import { User } from './user.entity';
 import { Campaign } from './campaign.entity';
-import {
-  OrderPaymentStatusEnum,
-  OrderStatusEnum,
-} from 'src/enums/entity.enums';
+import { OrderPaymentStatusEnum, OrderStatusEnum } from '../enums/entity.enums';
 
 export class Order extends Document {
   @Prop({ type: Types.ObjectId, ref: 'users', required: true })

@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { AuthTokenPayload } from 'src/auth/interfaces/auth-types';
+import { AuthTokenPayload } from '../auth/interfaces/auth-types';
 
 export declare global {
   interface AuthenticatedRequest extends Request {

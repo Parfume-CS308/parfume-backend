@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Category } from './category.entity';
 import { Distributor } from './distributor.entity';
-import { PerfumeTypeEnum } from 'src/enums/entity.enums';
+import { PerfumeTypeEnum } from '../enums/entity.enums';
 
 @Schema({
   timestamps: true,
