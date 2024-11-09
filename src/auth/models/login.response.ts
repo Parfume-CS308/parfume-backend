@@ -1,4 +1,3 @@
-// response/login.response.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { UserBasicInfo } from '../interfaces/auth-types';
 
