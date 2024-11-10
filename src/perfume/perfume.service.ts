@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Perfume } from 'src/entities/perfume.entity';
 import { AllPerfumeItemDto } from './models/all_perfumes.response';
 import { Types } from 'mongoose';
+import { PerfumeDetailDto } from './models/perfume_detail.response';
 
 @Injectable()
 export class PerfumeService {
@@ -65,9 +66,64 @@ export class PerfumeService {
             description: category.description,
           };
         }),
-        variants: perfume.variants,
+        variants: perfume.variants.map((variant) => {
+          return {
+            volume: variant.volume,
+            price: variant.price,
+            stock: variant.stock,
+            active: variant.active,
+          };
+        }),
       }),
     );
     return parsedPerfumes;
+  }
+
+  async getPerfumeById(id: string): Promise<PerfumeDetailDto> {
+    const perfume = await this.PerfumeModel.findById(id)
+      .populate('distributor')
+      .populate('categories');
+    if (!perfume) {
+      throw new BadRequestException(
+        'Perfume not found, please check the id that is provided',
+      );
+    }
+    return {
+      id: (perfume._id as Types.ObjectId).toHexString(),
+      name: perfume.name,
+      brand: perfume.brand,
+      notes: perfume.notes,
+      type: perfume.type,
+      assetUrl: perfume.assetUrl,
+      season: perfume.season,
+      sillage: perfume.sillage,
+      longevity: perfume.longevity,
+      gender: perfume.gender,
+      description: perfume.description,
+      serialNumber: perfume.serialNumber,
+      warrantyStatus: perfume.warrantyStatus,
+      distributor: {
+        name: perfume.distributor.name,
+        contactPerson: perfume.distributor.contactPerson,
+        email: perfume.distributor.email,
+        phone: perfume.distributor.phone,
+        address: perfume.distributor.address,
+      },
+      categories: perfume.categories.map((category) => {
+        return {
+          id: (category._id as Types.ObjectId).toHexString(),
+          name: category.name,
+          description: category.description,
+        };
+      }),
+      variants: perfume.variants.map((variant) => {
+        return {
+          volume: variant.volume,
+          price: variant.price,
+          stock: variant.stock,
+          active: variant.active,
+        };
+      }),
+    };
   }
 }

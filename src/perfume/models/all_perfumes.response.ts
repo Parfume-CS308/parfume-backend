@@ -10,12 +10,6 @@ export class PerfumeVariantDto {
   volume: number;
 
   @ApiProperty({
-    example: 199.99,
-    description: 'Base price before any discounts',
-  })
-  basePrice: number;
-
-  @ApiProperty({
     example: 149.99,
     description: 'Current price after any discounts',
   })
