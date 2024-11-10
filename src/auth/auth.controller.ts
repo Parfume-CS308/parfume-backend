@@ -76,14 +76,14 @@ export class AuthController {
       res.cookie('access_token', access_token, {
         httpOnly: true,
         secure: EnvVault.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: EnvVault.NODE_ENV === 'production' ? 'none' : 'lax', // Change this
         path: '/',
       });
 
       res.cookie('refresh_token', refresh_token, {
         httpOnly: true,
         secure: EnvVault.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: EnvVault.NODE_ENV === 'production' ? 'none' : 'lax', // Change this
         path: '/',
       });
       Logger.log(`User logged in: ${user.email}`, 'AuthController.login');
@@ -164,14 +164,14 @@ export class AuthController {
       res.cookie('access_token', access_token, {
         httpOnly: true,
         secure: EnvVault.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: EnvVault.NODE_ENV === 'production' ? 'none' : 'lax', // Change this
         path: '/',
       });
 
       res.cookie('refresh_token', refresh_token, {
         httpOnly: true,
         secure: EnvVault.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: EnvVault.NODE_ENV === 'production' ? 'none' : 'lax', // Change this
         path: '/',
       });
       Logger.log(`Tokens set for user: ${user.email}`, 'AuthController.signup');
