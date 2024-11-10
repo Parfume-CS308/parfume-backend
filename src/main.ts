@@ -18,6 +18,13 @@ async function bootstrap() {
       forbidUnknownValues: false,
     }),
   );
+  app.enableCors({
+    origin: EnvVault.CORS_ORIGINS,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: '*',
+    exposedHeaders: '*',
+  });
   app.use(cookieParser());
   app.use(compression());
 

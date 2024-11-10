@@ -36,4 +36,8 @@ export class EnvVault {
 
   static REFRESH_TOKEN_PUBLIC_KEY_PATH: string =
     process.env.REFRESH_TOKEN_PUBLIC_KEY_PATH;
+
+  static readonly CORS_ORIGINS = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim())
+    : ['http://localhost:5173']; // made a default fallback here to make it run with the vite port that @erenaltin uses
 }

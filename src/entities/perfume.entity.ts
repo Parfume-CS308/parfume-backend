@@ -51,12 +51,12 @@ export class Perfume extends Document {
     required: true,
     default: 12,
   })
-  warrantyStatus: boolean; // 12 months by default
+  warrantyStatus: number; // 12 months by default
 
-  @Prop({ type: Types.ObjectId, ref: 'distributors' })
+  @Prop({ type: Types.ObjectId, ref: Distributor.name })
   distributor: Distributor;
 
-  @Prop([{ type: Types.ObjectId, ref: 'categories' }])
+  @Prop([{ type: Types.ObjectId, ref: Category.name }])
   categories: Category[];
 
   @Prop([

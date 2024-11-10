@@ -19,6 +19,7 @@ export declare global {
       ACCESS_TOKEN_PUBLIC_KEY_PATH: string;
       REFRESH_TOKEN_SECRET_PATH: string;
       REFRESH_TOKEN_PUBLIC_KEY_PATH: string;
+      CORS_ORIGINS: string;
     }
   }
 }
