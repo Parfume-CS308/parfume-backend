@@ -18,7 +18,6 @@ async function bootstrap() {
       forbidUnknownValues: false,
     }),
   );
-  console.log(EnvVault.CORS_ORIGINS);
   app.enableCors({
     origin: EnvVault.CORS_ORIGINS,
     credentials: true,
@@ -39,17 +38,6 @@ async function bootstrap() {
       'batuhamisildak@sabanciuniv.edu',
     )
     .addTag('CS308 Parfume Backend')
-    .addBearerAuth(
-      {
-        description: 'Communication key',
-        name: 'Authorization',
-        bearerFormat: '',
-        scheme: 'bearer',
-        type: 'http',
-        in: 'Header',
-      },
-      'authorization',
-    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config, {
