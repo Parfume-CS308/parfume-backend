@@ -7,6 +7,9 @@ import { User, UserSchema } from './entities/user.entity';
 import { SeedModule } from './seed/seed.module';
 import { PerfumeModule } from './perfume/perfume.module';
 import { CategoryModule } from './category/category.module';
+import { ReviewModule } from './review/review.module';
+import { CartModule } from './cart/cart.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -30,6 +33,9 @@ import { CategoryModule } from './category/category.module';
     SeedModule,
     PerfumeModule,
     CategoryModule,
+    ReviewModule,
+    CartModule,
+    OrderModule,
   ],
 })
 export class AppModule {}
