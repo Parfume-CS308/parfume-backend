@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { User } from './user.entity';
 import { Perfume } from './perfume.entity';
@@ -29,3 +29,5 @@ export class Campaign extends Document {
   @Prop({ default: -1 })
   maxUsageCount: number; // Optional limit on how many times the campaign can be used, -1 for unlimited
 }
+
+export const CampaignSchema = SchemaFactory.createForClass(Campaign);

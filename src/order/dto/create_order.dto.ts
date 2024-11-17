@@ -1,56 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import {
   IsString,
-  IsNumber,
   IsArray,
-  ValidateNested,
-  Min,
-  ArrayMinSize,
   IsOptional,
   Matches,
   MaxLength,
   IsUUID,
 } from 'class-validator';
 
-class OrderItemDto {
-  @ApiProperty({
-    description: 'Perfume ID',
-    example: '507f1f77bcf86cd799439011',
-  })
-  @IsString()
-  perfumeId: string;
-
-  @ApiProperty({
-    description: 'Volume of the perfume in ml',
-    example: 100,
-    minimum: 1,
-  })
-  @IsNumber()
-  @Min(1)
-  volume: number;
-
-  @ApiProperty({
-    description: 'Quantity of the perfume',
-    example: 2,
-    minimum: 1,
-  })
-  @IsNumber()
-  @Min(1)
-  quantity: number;
-}
-
 export class CreateOrderDto {
-  @ApiProperty({
-    description: 'Array of order items',
-    type: [OrderItemDto],
-    minItems: 1,
-  })
-  @IsArray()
-  @ArrayMinSize(1)
-  @ValidateNested({ each: true })
-  @Type(() => OrderItemDto)
-  items: OrderItemDto[];
 
   @ApiProperty({
     description: 'Shipping address for the order',

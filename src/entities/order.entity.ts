@@ -1,10 +1,14 @@
-import { Prop } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Perfume } from './perfume.entity';
 import { User } from './user.entity';
 import { Campaign } from './campaign.entity';
 import { OrderPaymentStatusEnum, OrderStatusEnum } from '../enums/entity.enums';
 
+@Schema({
+  timestamps: true,
+  collection: 'orders',
+})
 export class Order extends Document {
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   user: User;
@@ -15,15 +19,13 @@ export class Order extends Document {
       volume: Number,
       quantity: Number,
       price: Number,
-      totalPrice: Number,
     },
   ])
   items: Array<{
-    perfume: Perfume;
+    perfume: Perfume | Types.ObjectId;
     volume: number;
     quantity: number;
     price: number;
-    totalPrice: number;
   }>;
 
   @Prop({ required: true })
@@ -42,6 +44,7 @@ export class Order extends Document {
       OrderStatusEnum.IN_TRANSIT,
       OrderStatusEnum.DELIVERED,
       OrderStatusEnum.REFUNDED,
+      OrderStatusEnum.CANCELED,
     ],
     default: OrderStatusEnum.PROCESSING,
   })
@@ -63,7 +66,7 @@ export class Order extends Document {
   paymentStatus: OrderPaymentStatusEnum;
 
   @Prop()
-  taxId: string; // would be a uuid
+  taxId: string | null;
 
   @Prop()
   paymentId: string; // would be a uuid
@@ -73,4 +76,9 @@ export class Order extends Document {
 
   @Prop()
   invoiceUrl: string; // URL to stored PDF invoice
+
+  @Prop()
+  createdAt: Date;
 }
+
+export const OrderSchema = SchemaFactory.createForClass(Order);

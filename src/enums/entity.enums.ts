@@ -3,6 +3,7 @@ export enum OrderStatusEnum {
   IN_TRANSIT = 'in-transit',
   DELIVERED = 'delivered',
   REFUNDED = 'refunded',
+  CANCELED = 'canceled',
 }
 
 export enum OrderPaymentStatusEnum {

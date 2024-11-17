@@ -1,5 +1,5 @@
 // refund-request.entity.ts
-import { Prop } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Order } from './order.entity';
 import { User } from './user.entity';
@@ -10,6 +10,10 @@ export enum RefundRequestStatusEnum {
   REJECTED = 'REJECTED',
 }
 
+@Schema({
+  timestamps: true,
+  collection: 'refundrequests',
+})
 export class RefundRequest extends Document {
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   user: User;
@@ -55,3 +59,5 @@ export class RefundRequest extends Document {
   @Prop({ type: Date })
   processedAt?: Date;
 }
+
+export const RefundRequestSchema = SchemaFactory.createForClass(RefundRequest);
