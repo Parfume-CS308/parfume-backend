@@ -6,12 +6,12 @@ import { Campaign } from './campaign.entity';
 import { OrderPaymentStatusEnum, OrderStatusEnum } from '../enums/entity.enums';
 
 export class Order extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'users', required: true })
+  @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   user: User;
 
   @Prop([
     {
-      perfume: { type: Types.ObjectId, ref: 'perfumes' },
+      perfume: { type: Types.ObjectId, ref: Perfume.name },
       volume: Number,
       quantity: Number,
       price: Number,
@@ -29,7 +29,7 @@ export class Order extends Document {
   @Prop({ required: true })
   totalAmount: number;
 
-  @Prop({ type: [Types.ObjectId], ref: 'campaigns' })
+  @Prop({ type: [Types.ObjectId], ref: Campaign.name })
   appliedCampaigns?: Campaign[];
 
   @Prop({ default: 0 })
@@ -62,18 +62,15 @@ export class Order extends Document {
   })
   paymentStatus: OrderPaymentStatusEnum;
 
-  @Prop({
-    required: true,
-  })
+  @Prop()
+  taxId: string; // would be a uuid
+
+  @Prop()
   paymentId: string; // would be a uuid
 
-  @Prop({
-    required: true,
-  })
+  @Prop()
   invoiceNumber: string; // would be a short id, e.g., INV-1234
 
-  @Prop({
-    required: true,
-  })
+  @Prop()
   invoiceUrl: string; // URL to stored PDF invoice
 }
