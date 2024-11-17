@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { User } from './user.entity';
 import { Perfume } from './perfume.entity';
@@ -8,19 +8,21 @@ import { Perfume } from './perfume.entity';
   collection: 'carts',
 })
 export class Cart extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'users' })
+  @Prop({ type: Types.ObjectId, ref: User.name })
   user: User;
 
   @Prop([
     {
-      perfume: { type: Types.ObjectId, ref: 'perfumes' },
+      perfume: { type: Types.ObjectId, ref: Perfume.name },
       volume: Number,
       quantity: Number,
     },
   ])
   items: Array<{
-    perfume: Perfume;
+    perfume: Types.ObjectId | Perfume;
     volume: number;
     quantity: number;
   }>;
 }
+
+export const CartSchema = SchemaFactory.createForClass(Cart);
