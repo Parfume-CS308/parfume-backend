@@ -1,10 +1,13 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Get,
   InternalServerErrorException,
   Logger,
   Param,
+  Post,
+  Query,
   Res,
 } from '@nestjs/common';
 import {
@@ -19,13 +22,14 @@ import { AllPerfumesResponse } from './models/all_perfumes.response';
 import { Response } from 'express';
 import { PerfumeDetailResponse } from './models/perfume_detail.response';
 import { GetPerfumeDetailDto } from './dto/get_perfume_detail.dto';
+import { PerfumeFilterDto } from './dto/get_perfumes.dto';
 
 @Controller('perfumes')
 @ApiTags('Perfumes')
 export class PerfumeController {
   constructor(private readonly perfumeService: PerfumeService) {}
 
-  @Get()
+  @Post()
   @ApiOperation({
     summary: 'Get all perfumes',
     description: 'Get all perfumes for homepage display and filtering',
@@ -38,17 +42,18 @@ export class PerfumeController {
     type: InternalServerErrorException,
   })
   async getAllPerfumes(
+    @Body() filterDto: PerfumeFilterDto,
     @Res() res: Response,
   ): Promise<Response<AllPerfumesResponse>> {
     try {
       Logger.log('Fetching all perfumes', 'PerfumeController.getAllPerfumes');
 
-      const perfumes = await this.perfumeService.getAllPerfumes();
+      const perfumes = await this.perfumeService.getAllPerfumes(filterDto);
       Logger.log(
         `Successfully fetched all perfumes of count: ${perfumes.length}`,
         'PerfumeController.getAllPerfumes',
       );
-      return res.json({
+      return res.status(200).json({
         message: 'Successfully fetched all perfumes',
         items: perfumes,
       });
