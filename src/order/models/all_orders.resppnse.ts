@@ -1,25 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { MessageResponse } from 'src/common/models/message.response';
-import { OrderPaymentStatusEnum, OrderStatusEnum } from 'src/enums/entity.enums';
-
-/**
-   @Prop([
-    {
-      perfume: { type: Types.ObjectId, ref: Perfume.name },
-      volume: Number,
-      quantity: Number,
-      price: Number,
-      totalPrice: Number,
-    },
-  ])
-  items: Array<{
-    perfume: Perfume;
-    volume: number;
-    quantity: number;
-    price: number;
-    totalPrice: number;
-  }>;
- */
+import { MessageResponse } from '../../common/models/message.response';
+import { OrderPaymentStatusEnum, OrderStatusEnum } from '../../enums/entity.enums';
 export class OrdersPerfumeVariantItem {
   @ApiProperty({
     description: 'Perfume ID',

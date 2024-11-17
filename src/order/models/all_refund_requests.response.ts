@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { RefundRequestStatusEnum } from 'src/entities/refund_request.entity';
+import { RefundRequestStatusEnum } from '../../entities/refund_request.entity';
 
 export class RefundRequestItem {
   @ApiProperty()

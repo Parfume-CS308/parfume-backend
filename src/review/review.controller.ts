@@ -20,15 +20,15 @@ import {
 import { ReviewService } from './review.service';
 import { Response } from 'express';
 import { AllReviewsResponse } from './models/all_review.response';
-import { MessageResponse } from 'src/common/models/message.response';
-import { AuthGuard } from 'src/guards/auth.guard';
-import { RolesGuard } from 'src/guards/role.guard';
-import { Roles } from 'src/decorators/role.decorator';
+import { MessageResponse } from '../common/models/message.response';
+import { AuthGuard } from '../guards/auth.guard';
+import { RolesGuard } from '../guards/role.guard';
+import { Roles } from '../decorators/role.decorator';
 import { CreateReviewDto } from './dto/create_review.dto';
 import { PerfumeIdDto } from './dto/perfume_id.dto';
-import { User } from 'src/decorators/user.decorator';
-import { AuthTokenPayload } from 'src/auth/interfaces/auth-types';
-import { ObjectIdDto } from 'src/common/dto/object_id.dto';
+import { User } from '../decorators/user.decorator';
+import { AuthTokenPayload } from '../auth/interfaces/auth-types';
+import { ObjectIdDto } from '../common/dto/object_id.dto';
 
 @Controller('review')
 @ApiTags('Reviews')

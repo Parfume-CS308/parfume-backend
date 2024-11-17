@@ -20,11 +20,11 @@ import {
 import { Response } from 'express';
 import { CategoryService } from './category.service';
 import { AllCategoriesResponse } from './models/all_categories.response';
-import { MessageResponse } from 'src/common/models/message.response';
-import { Roles } from 'src/decorators/role.decorator';
-import { AuthGuard } from 'src/guards/auth.guard';
-import { RolesGuard } from 'src/guards/role.guard';
-import { ObjectIdDto } from 'src/common/dto/object_id.dto';
+import { MessageResponse } from '../common/models/message.response';
+import { Roles } from '../decorators/role.decorator';
+import { AuthGuard } from '../guards/auth.guard';
+import { RolesGuard } from '../guards/role.guard';
+import { ObjectIdDto } from '../common/dto/object_id.dto';
 import { CreateCategoryDto } from './dto/create_category.dto';
 
 @Controller('categories')

@@ -15,13 +15,13 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { Roles } from 'src/decorators/role.decorator';
-import { AuthGuard } from 'src/guards/auth.guard';
-import { RolesGuard } from 'src/guards/role.guard';
+import { Roles } from '../decorators/role.decorator';
+import { AuthGuard } from '../guards/auth.guard';
+import { RolesGuard } from '../guards/role.guard';
 import { CartDetailsResponse } from './models/cart_details.response';
 import { Response } from 'express';
-import { User } from 'src/decorators/user.decorator';
-import { AuthTokenPayload } from 'src/auth/interfaces/auth-types';
+import { User } from '../decorators/user.decorator';
+import { AuthTokenPayload } from '../auth/interfaces/auth-types';
 import { CartService } from './cart.service';
 import { SyncCartDto } from './dto/sync_cart.dto';
 

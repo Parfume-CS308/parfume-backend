@@ -15,7 +15,7 @@ import { OrderStatusEnum, OrderPaymentStatusEnum } from '../enums/entity.enums';
 import {
   RefundRequest,
   RefundRequestStatusEnum,
-} from 'src/entities/refund_request.entity';
+} from '../entities/refund_request.entity';
 import { CreateRefundRequestDto } from './dto/refund_request.dto';
 
 @Injectable()

@@ -7,11 +7,9 @@ import {
   ValidateNested,
   Min,
   ArrayMinSize,
-  MaxLength,
   IsNotEmpty,
   Matches,
 } from 'class-validator';
-import { MessageResponse } from 'src/common/models/message.response';
 
 export class RefundItemDto {
   @ApiProperty({

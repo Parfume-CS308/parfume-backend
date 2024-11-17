@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { MessageResponse } from 'src/common/models/message.response';
+import { MessageResponse } from '../../common/models/message.response';
 
 export class CartItemDto {
   @ApiProperty({

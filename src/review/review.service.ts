@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Perfume } from 'src/entities/perfume.entity';
-import { Review } from 'src/entities/review.entity';
-import { User } from 'src/entities/user.entity';
+import { Perfume } from '../entities/perfume.entity';
+import { Review } from '../entities/review.entity';
+import { User } from '../entities/user.entity';
 import { AllReviewItemDto } from './models/all_review.response';
 import { CreateReviewDto } from './dto/create_review.dto';
 

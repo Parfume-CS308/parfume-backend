@@ -2,14 +2,14 @@ import { Module } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { OrderController } from './order.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AuthModule } from 'src/auth/auth.module';
-import { Category, CategorySchema } from 'src/entities/category.entity';
-import { Order, OrderSchema } from 'src/entities/order.entity';
-import { Perfume, PerfumeSchema } from 'src/entities/perfume.entity';
-import { Cart, CartSchema } from 'src/entities/cart.entity';
-import { RefundRequest, RefundRequestSchema } from 'src/entities/refund_request.entity';
-import { Campaign, CampaignSchema } from 'src/entities/campaign.entity';
-import { CartModule } from 'src/cart/cart.module';
+import { AuthModule } from '../auth/auth.module';
+import { Category, CategorySchema } from '../entities/category.entity';
+import { Order, OrderSchema } from '../entities/order.entity';
+import { Perfume, PerfumeSchema } from '../entities/perfume.entity';
+import { Cart, CartSchema } from '../entities/cart.entity';
+import { RefundRequest, RefundRequestSchema } from '../entities/refund_request.entity';
+import { Campaign, CampaignSchema } from '../entities/campaign.entity';
+import { CartModule } from '../cart/cart.module';
 
 @Module({
   imports: [

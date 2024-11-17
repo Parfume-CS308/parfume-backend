@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { ReviewController } from './review.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Perfume, PerfumeSchema } from 'src/entities/perfume.entity';
-import { Review, ReviewSchema } from 'src/entities/review.entity';
-import { User, UserSchema } from 'src/entities/user.entity';
-import { AuthModule } from 'src/auth/auth.module';
+import { Perfume, PerfumeSchema } from '../entities/perfume.entity';
+import { Review, ReviewSchema } from '../entities/review.entity';
+import { User, UserSchema } from '../entities/user.entity';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [

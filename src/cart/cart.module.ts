@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CartController } from './cart.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Perfume, PerfumeSchema } from 'src/entities/perfume.entity';
-import { Cart, CartSchema } from 'src/entities/cart.entity';
-import { AuthModule } from 'src/auth/auth.module';
+import { Perfume, PerfumeSchema } from '../entities/perfume.entity';
+import { Cart, CartSchema } from '../entities/cart.entity';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [

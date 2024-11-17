@@ -35,7 +35,7 @@ import { Roles } from '../decorators/role.decorator';
 import { RolesGuard } from '../guards/role.guard';
 import { AuthTokenPayload } from './interfaces/auth-types';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { MessageResponse } from 'src/common/models/message.response';
+import { MessageResponse } from '../common/models/message.response';
 
 @Controller('auth')
 @ApiTags('Authentication')
