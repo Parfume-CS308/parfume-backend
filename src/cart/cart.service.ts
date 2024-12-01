@@ -30,21 +30,36 @@ export class CartService {
       return {
         id: newCart._id.toString(),
         items: [],
+        totalPrice: 0,
       };
     }
 
-    return {
-      id: cart._id.toString(),
-      items: cart.items.map((item) => ({
-        perfumeId:
-          item.perfume instanceof Types.ObjectId
-            ? item.perfume.toString()
-            : (item.perfume as Perfume)._id.toString(),
-        perfumeName: (item.perfume as Perfume).name,
-        brand: (item.perfume as Perfume).brand,
+    let totalPrice = 0;
+
+    const perfumeItemDetails = cart.items.map((item) => {
+      const perfume = item.perfume as Perfume;
+      const variant = perfume.variants.find(
+        (v) => v.volume === item.volume,
+      );
+
+      if (!variant) {
+        throw new BadRequestException(`Invalid volume for item ${perfume.name}`);
+      }
+      totalPrice += variant.price * item.quantity;
+      return {
+        perfumeId: perfume._id.toString(),
+        perfumeName: perfume.name,
+        brand: perfume.brand,
         volume: item.volume,
         quantity: item.quantity,
-      })),
+        basePrice: variant.price,
+      };
+    })
+
+    return {
+      id: cart._id.toString(),
+      items: perfumeItemDetails,
+      totalPrice,
     };
   }
 

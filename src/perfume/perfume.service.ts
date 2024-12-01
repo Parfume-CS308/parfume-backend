@@ -20,7 +20,6 @@ export class PerfumeService {
     const filter: any = {};
     const aggregatePipeline: any[] = [];
 
-    // Basic filters
     if (filterDto.categoryIds?.length) {
       filter.categories = {
         $in: filterDto.categoryIds.map((id) => new Types.ObjectId(id)),
