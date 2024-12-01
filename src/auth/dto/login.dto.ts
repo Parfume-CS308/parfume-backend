@@ -17,8 +17,6 @@ export class LoginDto {
   })
   @IsString()
   @IsNotEmpty()
-  @MinLength(3)
-  @MaxLength(20)
   @IsEmail()
   email: string;
 
