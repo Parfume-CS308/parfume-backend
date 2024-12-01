@@ -96,4 +96,36 @@ export class CartController {
       throw new InternalServerErrorException('Internal Server Error');
     }
   }
+
+  @Post('clear')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('customer', 'product-manager', 'sales-manager')
+  @ApiOperation({
+    summary: 'Clear the shopping cart of the user',
+    description: 'Clear the shopping cart of the user',
+  })
+  @ApiOkResponse({
+    description: 'Successfully cleared the shopping cart',
+  })
+  @ApiInternalServerErrorResponse({
+    type: InternalServerErrorException,
+  })
+  async clearCart(
+    @Res() res: Response,
+    @User() user: AuthTokenPayload,
+  ): Promise<Response> {
+    try {
+      await this.cartService.clearCart(user.id);
+      return res.status(200).json({
+        message: 'Successfully cleared the shopping cart',
+      });
+    } catch (error) {
+      Logger.error(
+        'Failed to clear the shopping cart',
+        error.stack,
+        'CartController.clearCart',
+      );
+      throw new InternalServerErrorException('Internal Server Error');
+    }
+  }
 }

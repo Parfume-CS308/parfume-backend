@@ -17,6 +17,7 @@ import {
   RefundRequestStatusEnum,
 } from '../entities/refund_request.entity';
 import { CreateRefundRequestDto } from './dto/refund_request.dto';
+import { hashSync } from 'bcryptjs';
 
 @Injectable()
 export class OrderService {
@@ -218,6 +219,22 @@ export class OrderService {
     const { perfumes, campaigns, totalAmount, campaignDiscountAmount } =
       await this.validateAndCalculateOrder(orderItems, input.campaignIds);
 
+    const cardDetails: {
+      number: string;
+      holder: string;
+      expirationMonth: string;
+      expirationYear: string;
+      cvv: string;
+      lastFourDigits: string;
+    } = {
+      number: hashSync(input.cardNumber, 10),
+      holder: hashSync(input.cardHolder, 10),
+      expirationMonth: hashSync(input.expiryDateMM, 10),
+      expirationYear: hashSync(input.expiryDateYY, 10),
+      cvv: hashSync(input.cvv, 10),
+      lastFourDigits: input.cardNumber.slice(-4),
+    };
+
     const order = new this.OrderModel({
       user: new Types.ObjectId(userId),
       items: perfumes.map((p) => ({
@@ -237,6 +254,7 @@ export class OrderService {
       taxId: input.taxId || null,
       invoiceNumber: Math.floor(Math.random() * 1000000000).toString(),
       invoiceUrl: 'https://example.com/invoice.pdf',
+      cardDetails,
     });
     try {
       await order.save();
@@ -346,6 +364,7 @@ export class OrderService {
       invoiceNumber: order.invoiceNumber,
       invoiceUrl: order.invoiceUrl,
       createdAt: order.createdAt.getTime(),
+      cardLastFourDigits: order.cardDetails.lastFourDigits,
     }));
   }
 

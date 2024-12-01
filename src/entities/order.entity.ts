@@ -79,6 +79,26 @@ export class Order extends Document {
 
   @Prop()
   createdAt: Date;
+
+  @Prop({
+    type: {
+      number: String,
+      holder: String,
+      expirationMonth: String,
+      expirationYear: String,
+      cvv: String,
+      lastFourDigits: String,
+    },
+    default: null,
+  })
+  cardDetails: {
+    number: string;
+    holder: string;
+    expirationMonth: string;
+    expirationYear: string;
+    cvv: string;
+    lastFourDigits: string;
+  };
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

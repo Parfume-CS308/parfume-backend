@@ -229,11 +229,23 @@ export class CartService {
       return this.getCartDetails(userId);
     }
 
-    cart.items = items.map((item) => ({
-      perfume: new Types.ObjectId(item.perfume),
-      volume: item.volume,
-      quantity: item.quantity,
-    }));
+    items.forEach((item) => {
+      const existingItemIndex = cart.items.findIndex(
+        (cartItem) =>
+          cartItem.perfume.toString() === item.perfume &&
+          cartItem.volume === item.volume,
+      );
+
+      if (existingItemIndex !== -1) {
+        cart.items[existingItemIndex].quantity += item.quantity;
+      } else {
+        cart.items.push({
+          perfume: new Types.ObjectId(item.perfume),
+          volume: item.volume,
+          quantity: item.quantity,
+        });
+      }
+    });
 
     await cart.save();
     return this.getCartDetails(userId);

@@ -159,6 +159,11 @@ export class AllOrdersItem {
     })
     createdAt: number;
 
+    @ApiProperty({
+        description: 'Last four digits of the card',
+        example: '4242',
+    })
+    cardLastFourDigits: string;
 }
 
 export class AllOrdersResponse extends MessageResponse {
@@ -200,6 +205,7 @@ export class AllOrdersResponse extends MessageResponse {
             invoiceNumber: 'INV-1234',
             invoiceUrl: 'https://example.com/invoice.pdf',
             createdAt: 1612137600000,
+            cardLastFourDigits: '4242',
         },
         {
             orderId: '507f1f77bcf86cd799439012',
@@ -236,6 +242,7 @@ export class AllOrdersResponse extends MessageResponse {
             invoiceNumber: 'INV-1234',
             invoiceUrl: 'https://example.com/invoice.pdf',
             createdAt: 1612137600000,
+            cardLastFourDigits: '4242',
         },
     ],
   })
