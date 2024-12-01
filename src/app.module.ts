@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EnvVault } from './vault/env.vault';
 import { AuthModule } from './auth/auth.module';
-import { JwtModule } from './jwt/jwt.module';
 import { User, UserSchema } from './entities/user.entity';
 import { SeedModule } from './seed/seed.module';
 import { PerfumeModule } from './perfume/perfume.module';
@@ -28,10 +27,7 @@ import { DownloadModule } from './download/download.module';
         schema: UserSchema,
       },
     ]),
-    // NOTE: No need to import RedisHelperModule, right now
-    // RedisHelperModule.register(),
     AuthModule,
-    JwtModule,
     SeedModule,
     PerfumeModule,
     CategoryModule,
