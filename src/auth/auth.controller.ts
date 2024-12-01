@@ -288,7 +288,7 @@ export class AuthController {
         message: 'Profile information has been updated successfully',
       });
     } catch (error) {
-      if (error instanceof BadRequestException) {
+      if (error instanceof BadRequestException || error instanceof UnauthorizedException) {
         throw error;
       }
       throw new InternalServerErrorException();
