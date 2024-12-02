@@ -5,9 +5,9 @@ import { Perfume } from './perfume.entity';
 
 @Schema({
   timestamps: true,
-  collection: 'reviews',
+  collection: 'ratings',
 })
-export class Review extends Document {
+export class Rating extends Document {
   @Prop({ type: Types.ObjectId, ref: User.name })
   user: User;
 
@@ -15,16 +15,10 @@ export class Review extends Document {
   perfume: Perfume;
 
   @Prop({ required: true })
-  comment: string;
-
-  @Prop({ default: false })
-  isApproved: boolean;
-
-  @Prop()
-  approvedAt: Date;
+  rating: number;
 
   @Prop()
   createdAt: Date;
 }
 
-export const ReviewSchema = SchemaFactory.createForClass(Review);
+export const RatingSchema = SchemaFactory.createForClass(Rating);

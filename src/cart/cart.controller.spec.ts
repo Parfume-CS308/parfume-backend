@@ -2,13 +2,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CartController } from './cart.controller';
 import { CartService } from './cart.service';
 import { Response } from 'express';
-import { BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { AuthTokenPayload } from '../auth/interfaces/auth-types';
 import { UserRoleEnum } from '../enums/entity.enums';
 import { SyncCartDto } from './dto/sync_cart.dto';
 import { AuthGuard } from '../guards/auth.guard';
 import { RolesGuard } from '../guards/role.guard';
-
 
 jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
 jest.spyOn(Logger, 'log').mockImplementation(() => undefined);
@@ -37,7 +40,7 @@ describe('CartController', () => {
 
   const mockUser: AuthTokenPayload = {
     id: '507f1f77bcf86cd799439011',
-    email: 'test@example.com',
+    email: 'batuhanisildak@sabanciuniv.edu',
     role: UserRoleEnum.CUSTOMER,
   };
 
@@ -86,11 +89,13 @@ describe('CartController', () => {
     });
 
     it('should throw InternalServerErrorException when service fails', async () => {
-      mockCartService.getCartDetails.mockRejectedValue(new Error('Database error'));
-
-      await expect(controller.getCartDetails(mockResponse, mockUser)).rejects.toThrow(
-        InternalServerErrorException,
+      mockCartService.getCartDetails.mockRejectedValue(
+        new Error('Database error'),
       );
+
+      await expect(
+        controller.getCartDetails(mockResponse, mockUser),
+      ).rejects.toThrow(InternalServerErrorException);
       expect(Logger.error).not.toHaveBeenCalled();
     });
   });
@@ -119,7 +124,10 @@ describe('CartController', () => {
 
       await controller.syncCart(mockResponse, mockUser, mockSyncCartDto);
 
-      expect(cartService.syncCart).toHaveBeenCalledWith(mockUser.id, mockSyncCartDto.items);
+      expect(cartService.syncCart).toHaveBeenCalledWith(
+        mockUser.id,
+        mockSyncCartDto.items,
+      );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: 'Successfully synced the shopping cart',
@@ -138,7 +146,9 @@ describe('CartController', () => {
         ],
       };
 
-      mockCartService.syncCart.mockRejectedValue(new BadRequestException('Invalid perfume id'));
+      mockCartService.syncCart.mockRejectedValue(
+        new BadRequestException('Invalid perfume id'),
+      );
 
       await expect(
         controller.syncCart(mockResponse, mockUser, invalidSyncCartDto),
@@ -153,7 +163,7 @@ describe('CartController', () => {
       await expect(
         controller.syncCart(mockResponse, mockUser, mockSyncCartDto),
       ).rejects.toThrow(InternalServerErrorException);
-      
+
       expect(Logger.error).toHaveBeenCalledWith(
         'Failed to sync the shopping cart',
         error.stack,
@@ -172,7 +182,9 @@ describe('CartController', () => {
         ],
       };
 
-      mockCartService.syncCart.mockRejectedValue(new BadRequestException('Invalid quantity'));
+      mockCartService.syncCart.mockRejectedValue(
+        new BadRequestException('Invalid quantity'),
+      );
 
       await expect(
         controller.syncCart(mockResponse, mockUser, invalidQuantityDto),
@@ -191,7 +203,9 @@ describe('CartController', () => {
         ],
       };
 
-      mockCartService.syncCart.mockRejectedValue(new BadRequestException('Invalid volume'));
+      mockCartService.syncCart.mockRejectedValue(
+        new BadRequestException('Invalid volume'),
+      );
 
       await expect(
         controller.syncCart(mockResponse, mockUser, invalidVolumeDto),

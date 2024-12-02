@@ -15,12 +15,6 @@ export class AllReviewItemDto {
   user: string;
 
   @ApiProperty({
-    example: 5,
-    description: 'Rating of the review',
-  })
-  rating: number;
-
-  @ApiProperty({
     example: 'This is a great perfume!',
     description: 'Comment of the review',
   })

@@ -13,7 +13,7 @@ export class SignUpResponse {
     description: 'User information',
     example: {
       id: '507f1f77bcf86cd799439011',
-      email: 'user@example.com',
+      email: 'batuhanisildak@sabanciuniv.edu',
       firstName: 'John',
       lastName: 'Doe',
       age: 30,

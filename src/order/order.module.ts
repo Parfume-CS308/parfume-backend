@@ -10,6 +10,7 @@ import { Cart, CartSchema } from '../entities/cart.entity';
 import { RefundRequest, RefundRequestSchema } from '../entities/refund_request.entity';
 import { Campaign, CampaignSchema } from '../entities/campaign.entity';
 import { CartModule } from '../cart/cart.module';
+import { User, UserSchema } from 'src/entities/user.entity';
 
 @Module({
   imports: [
@@ -37,6 +38,10 @@ import { CartModule } from '../cart/cart.module';
       {
         name: Campaign.name,
         schema: CampaignSchema,
+      },
+      {
+        name: User.name,
+        schema: UserSchema,
       }
     ]),
     CartModule,

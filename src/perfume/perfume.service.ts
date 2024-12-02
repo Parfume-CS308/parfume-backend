@@ -40,7 +40,6 @@ export class PerfumeService {
       filter.type = { $in: filterDto.type };
     }
 
-    // Price filter (needs to look into variants)
     if (filterDto.minPrice !== -1 || filterDto.maxPrice !== -1) {
       filter['variants.price'] = {};
       if (filterDto.minPrice !== -1) {
@@ -51,10 +50,8 @@ export class PerfumeService {
       }
     }
 
-    // Start with basic match
     aggregatePipeline.push({ $match: filter });
 
-    // Lookup reviews for average rating
     aggregatePipeline.push({
       $lookup: {
         from: 'reviews',
@@ -74,7 +71,6 @@ export class PerfumeService {
       },
     });
 
-    // Unwind and set defaults for review stats
     aggregatePipeline.push({
       $addFields: {
         averageRating: {
@@ -86,7 +82,6 @@ export class PerfumeService {
       },
     });
 
-    // Populate necessary fields
     aggregatePipeline.push(
       {
         $lookup: {
@@ -107,7 +102,6 @@ export class PerfumeService {
       },
     );
 
-    // Apply sorting
     switch (filterDto.sortBy) {
       case PerfumeSortingEnum.PRICE_ASC:
         aggregatePipeline.push({ $sort: { 'variants.price': 1 } });

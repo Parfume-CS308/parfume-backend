@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -29,11 +30,103 @@ import { PerfumeIdDto } from './dto/perfume_id.dto';
 import { User } from '../decorators/user.decorator';
 import { AuthTokenPayload } from '../auth/interfaces/auth-types';
 import { ObjectIdDto } from '../common/dto/object_id.dto';
+import { PerfumeRatingResponse } from './models/rating.response';
 
 @Controller('review')
 @ApiTags('Reviews')
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
+
+  @Post('/rating/:perfumeId/:rating')
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: 'Get the average rating for a perfume',
+    description: 'Get the average rating for a perfume',
+  })
+  @ApiOkResponse({
+    description: 'Successfully fetched the average rating',
+    type: PerfumeRatingResponse,
+  })
+  @ApiInternalServerErrorResponse({
+    type: InternalServerErrorException,
+  })
+  async ratePerfume(
+    @Res() res: Response,
+    @Param() paramInput: PerfumeIdDto,
+    @Param('rating') rating: number,
+    @User() user: AuthTokenPayload,
+  ): Promise<Response<PerfumeRatingResponse>> {
+    try {
+      Logger.log(
+        `Rating perfume: ${paramInput.perfumeId} with rating: ${rating}`,
+        'ReviewController.ratePerfume',
+      );
+      await this.reviewService.ratePerfume(
+        paramInput.perfumeId,
+        rating,
+        user.id,
+      );
+      Logger.log(
+        `Successfully rated perfume: ${paramInput.perfumeId} with rating: ${rating}`,
+        'ReviewController.ratePerfume',
+      );
+      return res
+        .status(200)
+        .json({ message: 'Successfully rated the perfume' });
+    } catch (error) {
+      Logger.error(
+        `Failed to rate perfume: ${paramInput.perfumeId} with rating: ${rating}`,
+        error.stack,
+        'ReviewController.ratePerfume',
+      );
+      throw new InternalServerErrorException('Failed to rate the perfume');
+    }
+  }
+
+  @Get('/rating/:perfumeId')
+  @ApiOperation({
+    summary: 'Get the average rating for a perfume',
+    description: 'Get the average rating for a perfume',
+  })
+  @ApiOkResponse({
+    description: 'Successfully fetched the average rating',
+    type: PerfumeRatingResponse,
+  })
+  @ApiInternalServerErrorResponse({
+    type: InternalServerErrorException,
+  })
+  async getRating(
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+    @Param() paramInput: PerfumeIdDto,
+  ): Promise<Response<PerfumeRatingResponse>> {
+    try {
+      Logger.log(
+        `Fetching the average rating for perfume: ${paramInput.perfumeId}`,
+        'ReviewController.getRating',
+      );
+      const rating = await this.reviewService.getRating(
+        paramInput.perfumeId,
+        req,
+      );
+      Logger.log(
+        `Successfully fetched the average rating for perfume: ${paramInput.perfumeId}`,
+        'ReviewController.getRating',
+      );
+      return res
+        .status(200)
+        .json({ message: 'Successfully fetched the average rating', rating });
+    } catch (error) {
+      Logger.error(
+        `Failed to fetch the average rating for perfume: ${paramInput.perfumeId}`,
+        error.stack,
+        'ReviewController.getRating',
+      );
+      throw new InternalServerErrorException(
+        'Failed to fetch the average rating',
+      );
+    }
+  }
 
   @Get(':perfumeId/public')
   @ApiOperation({

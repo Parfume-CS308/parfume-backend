@@ -15,7 +15,7 @@ import { genderRegex, passwordRegex } from '../../constants/regex';
 export class SignUpDto {
   @ApiProperty({
     description: 'User email address',
-    example: 'user@example.com',
+    example: 'batuhanisildak@sabanciuniv.edu',
     required: true,
     uniqueItems: true,
   })

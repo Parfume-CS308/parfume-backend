@@ -6,6 +6,7 @@ import { Perfume, PerfumeSchema } from '../entities/perfume.entity';
 import { Review, ReviewSchema } from '../entities/review.entity';
 import { User, UserSchema } from '../entities/user.entity';
 import { AuthModule } from '../auth/auth.module';
+import { Rating, RatingSchema } from 'src/entities/rating.entity';
 
 @Module({
   imports: [
@@ -21,6 +22,10 @@ import { AuthModule } from '../auth/auth.module';
       {
         name: User.name,
         schema: UserSchema,
+      },
+      {
+        name: Rating.name,
+        schema: RatingSchema,
       },
     ]),
     AuthModule,

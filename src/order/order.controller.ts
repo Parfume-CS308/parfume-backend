@@ -29,7 +29,10 @@ import { AuthTokenPayload } from '../auth/interfaces/auth-types';
 import { MessageResponse } from '../common/models/message.response';
 import { CreateOrderDto } from './dto/create_order.dto';
 import { ObjectIdDto } from '../common/dto/object_id.dto';
-import { CreateRefundRequestDto, RefundRequestIdDto } from './dto/refund_request.dto';
+import {
+  CreateRefundRequestDto,
+  RefundRequestIdDto,
+} from './dto/refund_request.dto';
 import { ProcessRefundRequestDto } from './dto/process_refund_request.dto';
 import { AllRefundRequestsResponse } from './models/all_refund_requests.response';
 
@@ -58,12 +61,15 @@ export class OrderController {
   ): Promise<Response<MessageResponse>> {
     try {
       Logger.log('Creating an order', 'OrderController.createOrder');
-      await this.orderService.createOrder(input, user.id);
+      const orderDetails = await this.orderService.createOrder(input, user.id);
       Logger.log(
         'Successfully created an order',
         'OrderController.createOrder',
       );
-      return res.json({ message: 'Successfully created an order' });
+      return res.json({
+        message: 'Successfully created an order',
+        orderDetails,
+      });
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
@@ -101,7 +107,11 @@ export class OrderController {
         `Creating refund request for order ID: ${paramInput.id}`,
         'OrderController.createRefundRequest',
       );
-      await this.orderService.createRefundRequest(paramInput.id, input, user.id);
+      await this.orderService.createRefundRequest(
+        paramInput.id,
+        input,
+        user.id,
+      );
       return res.json({ message: 'Successfully created refund request' });
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -157,7 +167,6 @@ export class OrderController {
       throw new InternalServerErrorException('Failed to fetch refund requests');
     }
   }
-
 
   @Get()
   @UseGuards(AuthGuard)

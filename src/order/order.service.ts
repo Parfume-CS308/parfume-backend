@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, ObjectId, Types } from 'mongoose';
 import { Order } from '../entities/order.entity';
 import { Perfume } from '../entities/perfume.entity';
 import { Campaign } from '../entities/campaign.entity';
@@ -18,6 +18,11 @@ import {
 } from '../entities/refund_request.entity';
 import { CreateRefundRequestDto } from './dto/refund_request.dto';
 import { hashSync } from 'bcryptjs';
+import * as PDFDocument from 'pdfkit';
+import { format } from 'date-fns';
+import * as nodemailer from 'nodemailer';
+import * as puppeteer from 'puppeteer';
+import { User } from 'src/entities/user.entity';
 
 @Injectable()
 export class OrderService {
@@ -36,27 +41,30 @@ export class OrderService {
     @InjectModel(Campaign.name)
     private readonly CampaignModel: Model<Campaign>,
 
+    @InjectModel(User.name)
+    private readonly UserModel: Model<User>,
+
     private readonly cartService: CartService,
   ) {}
 
-  onModuleInit() {
-    this.startStatusUpdateInterval();
-  }
+  // onModuleInit() {
+  //   this.startStatusUpdateInterval();
+  // }
 
-  onModuleDestroy() {
-    if (this.statusUpdateInterval) {
-      clearInterval(this.statusUpdateInterval);
-    }
-  }
+  // onModuleDestroy() {
+  //   if (this.statusUpdateInterval) {
+  //     clearInterval(this.statusUpdateInterval);
+  //   }
+  // }
 
-  private startStatusUpdateInterval() {
-    setInterval(async () => {
-      Logger.log(
-        'Interval has started to update order statuses, this is a mock implementation for demonstration purposes',
-      );
-      await this.updateOrderStatuses();
-    }, 10000);
-  }
+  // private startStatusUpdateInterval() {
+  //   setInterval(async () => {
+  //     Logger.log(
+  //       'Interval has started to update order statuses, this is a mock implementation for demonstration purposes',
+  //     );
+  //     await this.updateOrderStatuses();
+  //   }, 10000);
+  // }
 
   private async updateOrderStatuses() {
     try {
@@ -82,23 +90,8 @@ export class OrderService {
             Logger.log(
               `Order ${order._id} payment completed and status updated to IN_TRANSIT`,
             );
-          } else {
-            Logger.log(
-              `Order ${order._id} payment will fail and order status will be updated to CANCELLED`,
-            );
-            await this.OrderModel.updateOne(
-              { _id: order._id },
-              {
-                $set: {
-                  paymentStatus: OrderPaymentStatusEnum.FAILED,
-                  status: OrderStatusEnum.CANCELED,
-                },
-              },
-            );
-            Logger.log(
-              `Order ${order._id} payment failed and order status updated to CANCELLED`,
-            );
           }
+          Logger.log(`Order ${order._id} payment will be delayed`);
           continue;
         }
       }
@@ -208,12 +201,252 @@ export class OrderService {
     };
   }
 
-  async createOrder(input: CreateOrderDto, userId: string): Promise<void> {
+  async generateInvoicePDF(order, user: User): Promise<Buffer> {
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Invoice - Perfume Point</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 40px;
+          color: #333;
+        }
+        .invoice-box {
+          max-width: 800px;
+          margin: auto;
+          border: 1px solid #eee;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+          padding: 30px;
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .logo {
+          font-size: 24px;
+          font-weight: bold;
+          color: #2d2d2d;
+        }
+        .invoice-title {
+          font-size: 20px;
+          color: #666;
+          margin-top: 10px;
+        }
+        .info-section {
+          margin-bottom: 30px;
+        }
+        .info-section div {
+          margin-bottom: 5px;
+        }
+        .items-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 20px 0;
+        }
+        .items-table th,
+        .items-table td {
+          padding: 12px;
+          border-bottom: 1px solid #eee;
+          text-align: left;
+        }
+        .items-table th {
+          background-color: #f8f9fa;
+        }
+        .totals {
+          margin-top: 30px;
+          text-align: right;
+        }
+        .totals div {
+          margin-bottom: 5px;
+        }
+        .grand-total {
+          font-size: 18px;
+          font-weight: bold;
+          margin-top: 10px;
+        }
+        .footer {
+          margin-top: 50px;
+          text-align: center;
+          color: #666;
+          font-size: 12px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="invoice-box">
+        <div class="header">
+          <div class="logo">Perfume Point</div>
+          <div class="invoice-title">INVOICE</div>
+        </div>
+
+        <div class="info-section">
+          <div><strong>Invoice Number:</strong> ${order.invoiceNumber}</div>
+          <div><strong>Date:</strong> ${format(new Date(), 'dd/MM/yyyy')}</div>
+        </div>
+
+        <div class="info-section">
+          <div><strong>Bill To:</strong></div>
+          <div>${user.firstName} ${user.lastName}</div>
+          <div>${order.shippingAddress}</div>
+          <div><strong>Used Card:</strong> **** **** **** ${order.cardDetails.lastFourDigits}</div>
+          <div><strong>Tax ID:</strong> ${order.taxId || 'N/A'}</div>
+        </div>
+
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Volume</th>
+              <th>Quantity</th>
+              <th>Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${order.items
+              .map(
+                (item) => `
+              <tr>
+                <td>${item.perfume.name}</td>
+                <td>${item.volume}ml</td>
+                <td>${item.quantity}</td>
+                <td>$${item.price.toFixed(2)}</td>
+                <td>$${item.price.toFixed(2) * item.quantity}</td>
+              </tr>
+            `,
+              )
+              .join('')}
+          </tbody>
+        </table>
+
+        <div class="totals">
+          <div><strong>Subtotal:</strong> $${(order.totalAmount + order.campaignDiscountAmount).toFixed(2)}</div>
+          ${
+            order.campaignDiscountAmount > 0
+              ? `<div><strong>Campaign Discount:</strong> -$${order.campaignDiscountAmount.toFixed(2)}</div>`
+              : ''
+          }
+          <div class="grand-total"><strong>Total Amount:</strong> $${order.totalAmount.toFixed(2)}</div>
+        </div>
+
+        <div class="footer">
+          <p>Thank you for shopping with Perfume Point!</p>
+          <p>For any questions, please contact support@perfumepoint.com</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+    // Launch Puppeteer and generate PDF
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+
+    // Set content and wait for fonts to load
+    await page.setContent(htmlContent, {
+      waitUntil: 'networkidle0',
+    });
+
+    // Generate PDF
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      margin: {
+        top: '20mm',
+        right: '20mm',
+        bottom: '20mm',
+        left: '20mm',
+      },
+      printBackground: true,
+    });
+
+    await browser.close();
+    return Buffer.from(pdfBuffer); // Convert Uint8Array to Buffer
+  }
+
+  async sendInvoiceEmail(order, pdfBuffer, username, email) {
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #333; text-align: center;">Thank You for Your Order!</h1>
+        <p>Dear ${username},</p>
+        
+        <p>Thank you for shopping with Perfume Point. Your order has been successfully placed and is being processed.</p>
+        
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <h3 style="margin-top: 0;">Order Summary</h3>
+          <p>Order Number: ${order.invoiceNumber}</p>
+          <p>Total Amount: $${order.totalAmount.toFixed(2)}</p>
+          <p>Payment Status: ${order.status}</p>
+        </div>
+        
+        <p>You can find your invoice attached to this email. If you have any questions about your order, please don't hesitate to contact our customer service team.</p>
+        
+        <p style="margin-top: 30px;">Best regards,<br>The Perfume Point Team</p>
+        
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px;">
+          <p>Perfume Point - Your Premium Fragrance Destination</p>
+          <p>This is an automated email, please do not reply directly to this message.</p>
+        </div>
+      </div>
+    `;
+
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.resend.com',
+      secure: true,
+      port: 465,
+      auth: {
+        user: 'resend',
+        pass: 're_MB44nE9S_FHpUwLFnQbUThBeVChevNCht',
+      },
+    });
+
+    await transporter.sendMail({
+      from: '"Perfume Point" <onboarding@resend.dev>',
+      to: email,
+      subject: `Perfume Point - Order Confirmation #${order.invoiceNumber}`,
+      html: emailHtml,
+      attachments: [
+        {
+          filename: `invoice-${order.invoiceNumber}.pdf`,
+          content: pdfBuffer,
+          contentType: 'application/pdf',
+        },
+      ],
+    });
+
+    Logger.log(
+      `Invoice email sent to ${email}`,
+      'OrderService.sendInvoiceEmail',
+    );
+  }
+
+  async createOrder(
+    input: CreateOrderDto,
+    userId: string,
+  ): Promise<{
+    orderId: string;
+    invoiceNumber: string;
+    totalAmount: number;
+    campaignDiscountAmount: number;
+    items: Array<{
+      perfumeId: string;
+      volume: number;
+      quantity: number;
+      price: number;
+    }>;
+    shippingAddress: string;
+    cardLastFourDigits: string;
+  }> {
     const userCart = await this.cartService.getCartDetails(userId);
     const orderItems = userCart.items;
 
     if (!orderItems || orderItems.length === 0) {
-      throw new BadRequestException('No items to order, the shopping cart is empty');
+      throw new BadRequestException(
+        'No items to order, the shopping cart is empty',
+      );
     }
 
     const { perfumes, campaigns, totalAmount, campaignDiscountAmount } =
@@ -259,6 +492,18 @@ export class OrderService {
     try {
       await order.save();
 
+      const user = await this.UserModel.findById(userId);
+      const orderData = await this.OrderModel.findById(order._id).populate(
+        'items.perfume',
+      );
+      const pdfBuffer = await this.generateInvoicePDF(orderData, user);
+      await this.sendInvoiceEmail(
+        order,
+        pdfBuffer,
+        input.cardHolder,
+        user.email,
+      );
+
       for (const item of perfumes) {
         await this.PerfumeModel.updateOne(
           {
@@ -271,6 +516,20 @@ export class OrderService {
         );
       }
       await this.cartService.clearCart(userId);
+      return {
+        orderId: (order._id as Types.ObjectId).toHexString(),
+        invoiceNumber: order.invoiceNumber,
+        totalAmount: order.totalAmount,
+        campaignDiscountAmount: order.campaignDiscountAmount,
+        items: order.items.map((item) => ({
+          perfumeId: (item.perfume._id as Types.ObjectId).toHexString(),
+          volume: item.volume,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        shippingAddress: order.shippingAddress,
+        cardLastFourDigits: order.cardDetails.lastFourDigits,
+      };
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
@@ -281,10 +540,11 @@ export class OrderService {
   }
 
   async getAllOrdersOfPerfume(perfumeId: string): Promise<Array<any>> {
-
     const perfume = await this.PerfumeModel.findById(perfumeId);
     if (!perfume) {
-      throw new BadRequestException('Perfume not found, cannot retrieve orders');
+      throw new BadRequestException(
+        'Perfume not found, cannot retrieve orders',
+      );
     }
     const orders = await this.OrderModel.find({
       'items.perfume': new Types.ObjectId(perfumeId),
@@ -561,7 +821,6 @@ export class OrderService {
   }
 
   async approveRefundRequest(refundRequestId: string): Promise<void> {
-
     try {
       const refundRequest =
         await this.RefundRequestModel.findById(refundRequestId).populate(
@@ -594,60 +853,65 @@ export class OrderService {
             $inc: { 'variants.$.stock': item.quantity },
           },
         );
-      
+
         const orderItem = refundRequest.order.items.find((oItem) =>
           (oItem.perfume as Types.ObjectId).equals(item.perfumeId),
         );
-      
+
         if (orderItem) {
           if (orderItem.quantity === item.quantity) {
             await this.OrderModel.updateOne(
               { _id: refundRequest.order._id },
               {
-                $pull: { 
-                  items: { 
+                $pull: {
+                  items: {
                     perfume: orderItem.perfume,
-                    volume: orderItem.volume 
-                  } 
+                    volume: orderItem.volume,
+                  },
                 },
                 $inc: { totalAmount: -item.refundAmount },
               },
             );
           } else {
-            const updatedTotalPrice = orderItem.price * (orderItem.quantity - item.quantity);
+            const updatedTotalPrice =
+              orderItem.price * (orderItem.quantity - item.quantity);
             await this.OrderModel.updateOne(
-              { 
+              {
                 _id: refundRequest.order._id,
                 'items.perfume': orderItem.perfume,
-                'items.volume': orderItem.volume
+                'items.volume': orderItem.volume,
               },
               {
-                $inc: { 
+                $inc: {
                   'items.$.quantity': -item.quantity,
-                  totalAmount: -item.refundAmount 
+                  totalAmount: -item.refundAmount,
                 },
-                $set: { 'items.$.totalPrice': updatedTotalPrice }
+                $set: { 'items.$.totalPrice': updatedTotalPrice },
               },
             );
           }
         }
       }
-      
-      const updatedOrder = await this.OrderModel.findById(refundRequest.order._id);
+
+      const updatedOrder = await this.OrderModel.findById(
+        refundRequest.order._id,
+      );
       if (updatedOrder.items.length === 0) {
         await this.OrderModel.updateOne(
           { _id: refundRequest.order._id },
-          { 
-            $set: { 
+          {
+            $set: {
               status: OrderStatusEnum.REFUNDED,
-              paymentStatus: OrderPaymentStatusEnum.REFUNDED 
-            }
+              paymentStatus: OrderPaymentStatusEnum.REFUNDED,
+            },
           },
         );
       }
-
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw error;
@@ -666,7 +930,9 @@ export class OrderService {
     }
 
     if (refundRequest.status !== RefundRequestStatusEnum.PENDING) {
-      throw new BadRequestException('Refund request is not in pending status, cannot be rejected');
+      throw new BadRequestException(
+        'Refund request is not in pending status, cannot be rejected',
+      );
     }
 
     refundRequest.status = RefundRequestStatusEnum.REJECTED;

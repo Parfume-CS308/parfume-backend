@@ -123,7 +123,7 @@ export class AuthController {
       userRegistration: {
         summary: 'Sample registration data',
         value: {
-          email: 'user@example.com',
+          email: 'batuhanisildak@sabanciuniv.edu',
           password: 'Test1234!',
           firstName: 'John',
           lastName: 'Doe',
