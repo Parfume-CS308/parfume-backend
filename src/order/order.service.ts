@@ -47,24 +47,24 @@ export class OrderService {
     private readonly cartService: CartService,
   ) {}
 
-  // onModuleInit() {
-  //   this.startStatusUpdateInterval();
-  // }
+  onModuleInit() {
+    this.startStatusUpdateInterval();
+  }
 
-  // onModuleDestroy() {
-  //   if (this.statusUpdateInterval) {
-  //     clearInterval(this.statusUpdateInterval);
-  //   }
-  // }
+  onModuleDestroy() {
+    if (this.statusUpdateInterval) {
+      clearInterval(this.statusUpdateInterval);
+    }
+  }
 
-  // private startStatusUpdateInterval() {
-  //   setInterval(async () => {
-  //     Logger.log(
-  //       'Interval has started to update order statuses, this is a mock implementation for demonstration purposes',
-  //     );
-  //     await this.updateOrderStatuses();
-  //   }, 10000);
-  // }
+  private startStatusUpdateInterval() {
+    setInterval(async () => {
+      Logger.log(
+        'Interval has started to update order statuses, this is a mock implementation for demonstration purposes',
+      );
+      await this.updateOrderStatuses();
+    }, 10000);
+  }
 
   private async updateOrderStatuses() {
     try {
@@ -74,7 +74,7 @@ export class OrderService {
       Logger.log(`Found ${processingOrders.length} processing orders`);
       for (const order of processingOrders) {
         if (order.paymentStatus === OrderPaymentStatusEnum.PENDING) {
-          const paymentSuccess = Math.random() < 0.5;
+          const paymentSuccess = Math.random() < 0.2;
 
           if (paymentSuccess) {
             Logger.log(`Order ${order._id} payment will be completed`);
