@@ -106,7 +106,7 @@ export class ReviewService {
 
   async getPublicReviews(perfumeId: string): Promise<AllReviewItemDto[]> {
     const reviews = await this.ReviewModel.find(
-      { perfume: new Types.ObjectId(perfumeId), isApproved: true },
+      { perfume: new Types.ObjectId(perfumeId) },
       {
         _id: 1,
         user: 1,
@@ -124,7 +124,7 @@ export class ReviewService {
       user: `${review.user.firstName} ${review.user.lastName}`,
       comment: review.comment,
       isApproved: review.isApproved,
-      approvedAt: review.approvedAt.getTime(),
+      approvedAt: review.approvedAt?.getTime(),
       createdAt: review.createdAt.getTime()
     }))
   }
