@@ -218,6 +218,44 @@ export class SeedService {
         ],
       },
       {
+        name: 'Maison Francis Kurkdijan - Grand Soir',
+        brand: 'AquaScents',
+        model: 'GR2024',
+        assetUrl:
+          'https://cdn.beymen.com/mnresize/596/830/productimages/esyb0lgq.a0l_IMG_01_3700559614242.jpg',
+        serialNumber: 388678,
+        notes: ['amber', 'vanilla', 'sweet'],
+        type: 'edp',
+        season: 'winter',
+        sillage: 'strong',
+        longevity: 'long',
+        gender: 'unisex',
+        description:
+          'A luxurious, warm fragrance that blends rich amber, vanilla, and tonka bean with soft, smoky notes, evoking elegance and timeless evening sophistication.',
+        warrantyStatus: 5,
+        distributor: distributors[0]._id,
+        categories: [
+          categories.find((c) => c.name === 'Unisex')._id,
+          categories.find((c) => c.name === 'Oriental')._id,
+        ],
+        variants: [
+          {
+            volume: 70,
+            price: 110,
+            basePrice: 60,
+            stock: 0,
+            active: true,
+          },
+          {
+            volume: 100,
+            price: 140,
+            basePrice: 110,
+            stock: 0,
+            active: true,
+          },
+        ],
+      },
+      {
         name: 'Parfums De Marly - Layton',
         brand: 'LuxeParfums',
         model: 'MR2024',
