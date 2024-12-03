@@ -180,6 +180,44 @@ export class SeedService {
         ],
       },
       {
+        name: 'Xerjoff - Naxos 1861',
+        brand: 'AquaScents',
+        model: 'XR2024',
+        assetUrl:
+          'https://cdn.beymen.com/mnresize/1200/1672/productimages/0709001254_IMG_01_8033488155070.jpg',
+        serialNumber: 345678,
+        notes: ['honey', 'vanilla', 'tobacco'],
+        type: 'edp',
+        season: 'winter',
+        sillage: 'strong',
+        longevity: 'long',
+        gender: 'unisex',
+        description:
+          'A bold, captivating fragrance that balances rich tobacco and honey notes with a fresh citrus twist, evoking Mediterranean elegance and modern sophistication.',
+        warrantyStatus: 11,
+        distributor: distributors[0]._id,
+        categories: [
+          categories.find((c) => c.name === 'Unisex')._id,
+          categories.find((c) => c.name === 'Oriental')._id,
+        ],
+        variants: [
+          {
+            volume: 50,
+            price: 120,
+            basePrice: 69,
+            stock: 1,
+            active: true,
+          },
+          {
+            volume: 100,
+            price: 180,
+            basePrice: 120,
+            stock: 2,
+            active: true,
+          },
+        ],
+      },
+      {
         name: 'Parfums De Marly - Layton',
         brand: 'LuxeParfums',
         model: 'MR2024',
