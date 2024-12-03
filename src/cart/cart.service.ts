@@ -38,12 +38,12 @@ export class CartService {
 
     const perfumeItemDetails = cart.items.map((item) => {
       const perfume = item.perfume as Perfume;
-      const variant = perfume.variants.find(
-        (v) => v.volume === item.volume,
-      );
+      const variant = perfume.variants.find((v) => v.volume === item.volume);
 
       if (!variant) {
-        throw new BadRequestException(`Invalid volume for item ${perfume.name}`);
+        throw new BadRequestException(
+          `Invalid volume for item ${perfume.name}`,
+        );
       }
       totalPrice += variant.price * item.quantity;
       return {
@@ -54,7 +54,7 @@ export class CartService {
         quantity: item.quantity,
         basePrice: variant.price,
       };
-    })
+    });
 
     return {
       id: cart._id.toString(),
@@ -92,11 +92,11 @@ export class CartService {
     }
   }
 
-  async addToCart(
+  async addItemsToCart(
     userId: string,
-    item: SyncCartItemDto,
+    items: SyncCartItemDto[],
   ): Promise<CartDetailDto> {
-    const isValid = await this.validateCartItems([item]);
+    const isValid = await this.validateCartItems(items);
     if (!isValid) {
       throw new BadRequestException(
         'Invalid perfume id, volume, or insufficient stock',
@@ -110,31 +110,71 @@ export class CartService {
     if (!cart) {
       const newCart = new this.CartModel({
         user: new Types.ObjectId(userId),
-        items: [
-          {
-            perfume: new Types.ObjectId(item.perfume),
-            volume: item.volume,
-            quantity: item.quantity,
-          },
-        ],
+        items: items.map((item) => ({
+          perfume: new Types.ObjectId(item.perfume),
+          volume: item.volume,
+          quantity: item.quantity,
+        })),
       });
       await newCart.save();
       return this.getCartDetails(userId);
     }
-    const existingItemIndex = cart.items.findIndex(
-      (cartItem) =>
-        cartItem.perfume.toString() === item.perfume &&
-        cartItem.volume === item.volume,
+    items.forEach((item) => {
+      const existingItemIndex = cart.items.findIndex(
+        (cartItem) =>
+          cartItem.perfume.toString() === item.perfume &&
+          cartItem.volume === item.volume,
+      );
+
+      if (existingItemIndex !== -1) {
+        cart.items[existingItemIndex].quantity += item.quantity;
+      } else {
+        cart.items.push({
+          perfume: new Types.ObjectId(item.perfume),
+          volume: item.volume,
+          quantity: item.quantity,
+        });
+      }
+    });
+
+    await cart.save();
+    return this.getCartDetails(userId);
+  }
+
+  async removeItemFromCart(
+    userId: string,
+    perfumeId: string,
+    volume: number,
+    quantity: number,
+  ): Promise<CartDetailDto> {
+    const cart = await this.CartModel.findOne({
+      user: new Types.ObjectId(userId),
+    });
+
+    if (!cart) {
+      throw new BadRequestException('Cart not found');
+    }
+
+    const itemToBeRemoved = cart.items.find(
+      (item) => item.perfume.toString() === perfumeId && item.volume === volume,
     );
 
-    if (existingItemIndex !== -1) {
-      cart.items[existingItemIndex].quantity += item.quantity;
+    cart.items = cart.items.filter(
+      (item) => item.perfume.toString() !== perfumeId || item.volume !== volume,
+    );
+
+    if (!itemToBeRemoved || itemToBeRemoved.quantity < quantity) {
+      throw new BadRequestException('Item not found in cart');
+    }
+
+    if (itemToBeRemoved.quantity === quantity) {
+      cart.items = cart.items.filter(
+        (item) =>
+          item.perfume.toString() !== perfumeId || item.volume !== volume,
+      );
     } else {
-      cart.items.push({
-        perfume: new Types.ObjectId(item.perfume),
-        volume: item.volume,
-        quantity: item.quantity,
-      });
+      itemToBeRemoved.quantity -= quantity;
+      cart.items.push(itemToBeRemoved);
     }
 
     await cart.save();
@@ -229,23 +269,11 @@ export class CartService {
       return this.getCartDetails(userId);
     }
 
-    items.forEach((item) => {
-      const existingItemIndex = cart.items.findIndex(
-        (cartItem) =>
-          cartItem.perfume.toString() === item.perfume &&
-          cartItem.volume === item.volume,
-      );
-
-      if (existingItemIndex !== -1) {
-        cart.items[existingItemIndex].quantity += item.quantity;
-      } else {
-        cart.items.push({
-          perfume: new Types.ObjectId(item.perfume),
-          volume: item.volume,
-          quantity: item.quantity,
-        });
-      }
-    });
+    cart.items = items.map((item) => ({
+      perfume: new Types.ObjectId(item.perfume),
+      volume: item.volume,
+      quantity: item.quantity,
+    }));
 
     await cart.save();
     return this.getCartDetails(userId);

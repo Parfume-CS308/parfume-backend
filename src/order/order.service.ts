@@ -433,6 +433,7 @@ export class OrderService {
     campaignDiscountAmount: number;
     items: Array<{
       perfumeId: string;
+      perfumeName: string;
       volume: number;
       quantity: number;
       price: number;
@@ -521,8 +522,9 @@ export class OrderService {
         invoiceNumber: order.invoiceNumber,
         totalAmount: order.totalAmount,
         campaignDiscountAmount: order.campaignDiscountAmount,
-        items: order.items.map((item) => ({
+        items: orderData.items.map((item) => ({
           perfumeId: (item.perfume._id as Types.ObjectId).toHexString(),
+          perfumeName: (item.perfume as any as Perfume).name,
           volume: item.volume,
           quantity: item.quantity,
           price: item.price,

@@ -23,7 +23,7 @@ import { Response } from 'express';
 import { User } from '../decorators/user.decorator';
 import { AuthTokenPayload } from '../auth/interfaces/auth-types';
 import { CartService } from './cart.service';
-import { SyncCartDto } from './dto/sync_cart.dto';
+import { SyncCartDto, SyncCartItemDto } from './dto/sync_cart.dto';
 
 @Controller('cart')
 @ApiTags('Shopping Cart')
@@ -124,6 +124,90 @@ export class CartController {
         'Failed to clear the shopping cart',
         error.stack,
         'CartController.clearCart',
+      );
+      throw new InternalServerErrorException('Internal Server Error');
+    }
+  }
+
+  @Post('add')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('customer', 'product-manager', 'sales-manager')
+  @ApiOperation({
+    summary: 'Add an item to the shopping cart of the user',
+    description: 'Add an item to the shopping cart of the user',
+  })
+  @ApiOkResponse({
+    description: 'Successfully added the item to the shopping cart',
+    type: CartDetailsResponse,
+  })
+  @ApiInternalServerErrorResponse({
+    type: InternalServerErrorException,
+  })
+  async addItemToCart(
+    @Res() res: Response,
+    @User() user: AuthTokenPayload,
+    @Body() syncCartDto: SyncCartDto,
+  ): Promise<Response<CartDetailsResponse>> {
+    try {
+      const items = await this.cartService.addItemsToCart(
+        user.id,
+        syncCartDto.items,
+      );
+      return res.status(200).json({
+        message: 'Successfully added the item to the shopping cart',
+        items,
+      });
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      Logger.error(
+        'Failed to add the item to the shopping cart',
+        error.stack,
+        'CartController.addItemToCart',
+      );
+      throw new InternalServerErrorException('Internal Server Error');
+    }
+  }
+
+  @Post('remove')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('customer', 'product-manager', 'sales-manager')
+  @ApiOperation({
+    summary: 'Remove an item from the shopping cart of the user',
+    description: 'Remove an item from the shopping cart of the user',
+  })
+  @ApiOkResponse({
+    description: 'Successfully removed the item from the shopping cart',
+    type: CartDetailsResponse,
+  })
+  @ApiInternalServerErrorResponse({
+    type: InternalServerErrorException,
+  })
+  async removeItemFromCart(
+    @Res() res: Response,
+    @User() user: AuthTokenPayload,
+    @Body() removeItemDto: SyncCartItemDto,
+  ): Promise<Response<CartDetailsResponse>> {
+    try {
+      const items = await this.cartService.removeItemFromCart(
+        user.id,
+        removeItemDto.perfume,
+        removeItemDto.volume,
+        removeItemDto.quantity,
+      );
+      return res.status(200).json({
+        message: 'Successfully removed the item from the shopping cart',
+        items,
+      });
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      Logger.error(
+        'Failed to remove the item from the shopping cart',
+        error.stack,
+        'CartController.removeItemFromCart',
       );
       throw new InternalServerErrorException('Internal Server Error');
     }
