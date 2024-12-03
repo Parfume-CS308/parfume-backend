@@ -129,7 +129,10 @@ export class PerfumeService {
         break
     }
 
-    const perfumes = await this.PerfumeModel.aggregate(aggregatePipeline)
+    let perfumes = await this.PerfumeModel.aggregate(aggregatePipeline)
+    if (filterDto.rating) {
+      perfumes = perfumes.filter(perfume => perfume.averageRating >= filterDto.rating)
+    }
 
     return perfumes.map(perfume => ({
       id: perfume._id.toHexString(),
