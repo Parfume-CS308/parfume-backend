@@ -35,6 +35,7 @@ import {
 } from './dto/refund_request.dto';
 import { ProcessRefundRequestDto } from './dto/process_refund_request.dto';
 import { AllRefundRequestsResponse } from './models/all_refund_requests.response';
+import { UpdateOrderStatusDto } from './dto/update_order.dto';
 
 @Controller('orders')
 @ApiTags('Orders - Purchase')
@@ -327,35 +328,32 @@ export class OrderController {
     }
   }
 
-  @Get(':perfumeId')
+  @Get('all')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('sales-manager', 'product-manager')
   @ApiOperation({
-    summary: 'Get all of the orders of the perfume',
-    description: 'Get all of the orders of the perfume for the managers',
+    summary: 'Get all of the orders, only for managers',
+    description: 'Get all of the orders, only for managers',
   })
   @ApiOkResponse({
-    description: 'Successfully fetched all orders of the perfume',
+    description: 'Successfully fetched all orders of the system',
     type: AllOrdersResponse,
   })
   @ApiInternalServerErrorResponse({
     type: InternalServerErrorException,
   })
-  async getAllOrdersOfPerfume(
+  async getAllOrders(
     @Res() res: Response,
-    @Param() input: PerfumeIdDto,
   ): Promise<Response<AllOrdersResponse>> {
     try {
       Logger.log(
-        `Fetching all orders of the perfume with ID: ${input.perfumeId}`,
-        'OrderController.getAllOrdersOfPerfume',
+        `Fetching all orders of the system`,
+        'OrderController.getAllOrders',
       );
-      const orders = await this.orderService.getAllOrdersOfPerfume(
-        input.perfumeId,
-      );
+      const orders = await this.orderService.getAllOrders();
       Logger.log(
-        `Successfully fetched all orders of the perfume with ID: ${input.perfumeId} of count: ${orders.length}`,
-        'OrderController.getAllOrdersOfPerfume',
+        `Successfully fetched all orders of the system, count: ${orders.length}`,
+        'OrderController.getAllOrders',
       );
       return res.json({
         message: 'Successfully fetched all orders',
@@ -366,12 +364,57 @@ export class OrderController {
         throw error;
       }
       Logger.error(
-        `Failed to fetch all orders of the perfume with ID: ${input.perfumeId}`,
+        `Failed to fetch all orders of the system`,
         error.stack,
         'OrderController.getAllOrdersOfPerfume',
       );
       throw new InternalServerErrorException(
-        'Failed to fetch all orders of the perfume',
+        'Failed to fetch all orders of the system',
+      );
+    }
+  }
+
+  @Post('updateStatus/:orderId/:status')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('sales-manager', 'product-manager')
+  @ApiOperation({
+    summary: 'Update the status of an order',
+    description: 'Update the status of an order',
+  })
+  @ApiOkResponse({
+    description: 'Successfully updated the status of the order',
+    type: MessageResponse,
+  })
+  @ApiInternalServerErrorResponse({
+    type: InternalServerErrorException,
+  })
+  async updateOrderStatus(
+    @Res() res: Response,
+    @Param() paramInput: UpdateOrderStatusDto,
+  ): Promise<Response<MessageResponse>> {
+    try {
+      Logger.log(
+        `Updating status of the order with ID: ${paramInput.orderId}`,
+        'OrderController.updateOrderStatus',
+      );
+      await this.orderService.updateOrderStatus(
+        paramInput.orderId,
+        paramInput.status,
+      );
+      return res.json({
+        message: 'Successfully updated the status of the order',
+      });
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      Logger.error(
+        `Failed to update status of the order with ID: ${paramInput.orderId}`,
+        error.stack,
+        'OrderController.updateOrderStatus',
+      );
+      throw new InternalServerErrorException(
+        'Failed to update status of the order',
       );
     }
   }

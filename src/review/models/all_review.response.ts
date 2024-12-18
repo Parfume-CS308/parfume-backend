@@ -9,6 +9,12 @@ export class AllReviewItemDto {
   id: string;
 
   @ApiProperty({
+    example: 'YSL Myself',
+    description: 'Name of the perfume',
+  })
+  perfumeName: string;
+
+  @ApiProperty({
     example: 'Batuhan Isildak',
     description: 'Name of the user',
   })

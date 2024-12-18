@@ -63,7 +63,7 @@ export class OrderService {
         'Interval has started to update order statuses, this is a mock implementation for demonstration purposes',
       );
       await this.updateOrderStatuses();
-    }, 10000);
+    }, 15000);
   }
 
   private async updateOrderStatuses() {
@@ -74,7 +74,7 @@ export class OrderService {
       Logger.log(`Found ${processingOrders.length} processing orders`);
       for (const order of processingOrders) {
         if (order.paymentStatus === OrderPaymentStatusEnum.PENDING) {
-          const paymentSuccess = Math.random() < 0.2;
+          const paymentSuccess = Math.random() < 0.4;
 
           if (paymentSuccess) {
             Logger.log(`Order ${order._id} payment will be completed`);
@@ -482,7 +482,7 @@ export class OrderService {
       appliedCampaigns: campaigns?.map((c) => c._id) || [],
       campaignDiscountAmount,
       status: OrderStatusEnum.PROCESSING,
-      paymentStatus: OrderPaymentStatusEnum.PENDING,
+      paymentStatus: OrderPaymentStatusEnum.COMPLETED,
       shippingAddress: input.shippingAddress,
       paymentId: input.paymentId,
       taxId: input.taxId || null,
@@ -541,16 +541,8 @@ export class OrderService {
     }
   }
 
-  async getAllOrdersOfPerfume(perfumeId: string): Promise<Array<any>> {
-    const perfume = await this.PerfumeModel.findById(perfumeId);
-    if (!perfume) {
-      throw new BadRequestException(
-        'Perfume not found, cannot retrieve orders',
-      );
-    }
-    const orders = await this.OrderModel.find({
-      'items.perfume': new Types.ObjectId(perfumeId),
-    })
+  async getAllOrders(): Promise<Array<any>> {
+    const orders = await this.OrderModel.find({})
       .populate('user', 'email firstName lastName')
       .populate({
         path: 'items.perfume',
@@ -588,6 +580,23 @@ export class OrderService {
       invoiceUrl: order.invoiceUrl,
       createdAt: order.createdAt.getTime(),
     }));
+  }
+
+  async updateOrderStatus(
+    orderId: string,
+    status: OrderStatusEnum,
+  ): Promise<void> {
+    try {
+      await this.OrderModel.updateOne(
+        { _id: new Types.ObjectId(orderId) },
+        { $set: { status } },
+      );
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw error;
+    }
   }
 
   async getAllOrdersOfUser(userId: string): Promise<Array<any>> {
