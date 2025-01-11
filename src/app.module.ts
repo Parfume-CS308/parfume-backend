@@ -9,8 +9,7 @@ import { CategoryModule } from './category/category.module';
 import { ReviewModule } from './review/review.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
-import { UploadModule } from './upload/upload.module';
-import { DownloadModule } from './download/download.module';
+import { UploadModule } from './productImage/upload.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { ProductManagementModule } from './product_management/product_management.module';
 import { DiscountModule } from './discount/discount.module';
@@ -38,10 +37,9 @@ import { DiscountModule } from './discount/discount.module';
     CartModule,
     OrderModule,
     UploadModule,
-    DownloadModule,
     WishlistModule,
     ProductManagementModule,
     DiscountModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}
