@@ -57,7 +57,7 @@ export class CartService {
             item.perfume._id.toString(),
           );
         totalPrice += variant.price * item.quantity;
-        totalDiscountedPrice = discountedPrice * item.quantity;
+        totalDiscountedPrice += discountedPrice * item.quantity;
         return {
           perfumeId: perfume._id.toString(),
           perfumeName: perfume.name,

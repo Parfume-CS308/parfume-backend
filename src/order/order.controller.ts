@@ -6,6 +6,7 @@ import {
   Get,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   Param,
   Post,
   Res,
@@ -15,6 +16,7 @@ import {
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { OrderService } from './order.service';
@@ -415,6 +417,52 @@ export class OrderController {
       throw new InternalServerErrorException(
         'Failed to update status of the order',
       );
+    }
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('product-manager', 'sales-manager')
+  @ApiOperation({
+    summary: 'Cancel an order',
+    description: 'Cancel an order by the managers',
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'Category id to update',
+  })
+  @ApiOkResponse({
+    description: 'Successfully cancelled the order',
+    type: MessageResponse,
+  })
+  @ApiInternalServerErrorResponse({
+    type: InternalServerErrorException,
+  })
+  async cancelOrder(
+    @Res() res: Response,
+    @Param() paramInput: ObjectIdDto,
+  ): Promise<Response<MessageResponse>> {
+    try {
+      Logger.log(
+        `Cancelling order with ID: ${paramInput.id}`,
+        'OrderController.cancelOrder',
+      );
+      await this.orderService.cancelOrder(paramInput.id);
+      return res.json({ message: 'Successfully cancelled the order' });
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      Logger.error(
+        `Failed to cancel order with ID: ${paramInput.id}`,
+        error.stack,
+        'OrderController.cancelOrder',
+      );
+      throw new InternalServerErrorException('Failed to cancel the order');
     }
   }
 }

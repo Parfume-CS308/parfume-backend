@@ -246,7 +246,11 @@ export class DiscountService {
     if (!activeDiscount) {
       return originalPrice;
     }
-    return originalPrice * (1 - activeDiscount.discountRate / 100);
+    return (
+      Math.floor(
+        originalPrice * (1 - activeDiscount.discountRate / 100) * 100,
+      ) / 100
+    );
   }
 
   async updateDiscount(

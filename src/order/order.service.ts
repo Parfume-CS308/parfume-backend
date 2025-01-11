@@ -454,7 +454,9 @@ export class OrderService {
 
       if (activeDiscount) {
         perfume.discountedPrice =
-          perfume.price * (1 - activeDiscount.discountRate / 100);
+          Math.floor(
+            perfume.price * (1 - activeDiscount.discountRate / 100) * 100,
+          ) / 100;
         perfume.totalPrice = perfume.discountedPrice * perfume.quantity;
         discountAmount += perfume.price * perfume.quantity - perfume.totalPrice;
         appliedDiscounts.push(activeDiscount._id);
@@ -544,7 +546,7 @@ export class OrderService {
       .populate({
         path: 'items.perfume',
         model: Perfume.name,
-        select: 'name brand',
+        select: 'name brand variants',
       })
       .populate('appliedDiscounts', 'name discountRate')
       .sort({ createdAt: -1 });
@@ -554,19 +556,26 @@ export class OrderService {
       userId: order.user._id.toString(),
       userEmail: order.user.email,
       userName: `${order.user.firstName} ${order.user.lastName}`,
-      items: order.items.map((item) => ({
-        perfumeId: item.perfume._id.toString(),
-        perfumeName: (item.perfume as any as Perfume).name,
-        brand: (item.perfume as any as Perfume).brand,
-        volume: item.volume,
-        quantity: item.quantity,
-        price: item.price,
-      })),
+      items: order.items.map((item) => {
+        const variant = (item.perfume as any as Perfume).variants.find(
+          (v) => v.volume === item.volume,
+        );
+        return {
+          perfumeId: item.perfume._id.toString(),
+          perfumeName: (item.perfume as any as Perfume).name,
+          brand: (item.perfume as any as Perfume).brand,
+          volume: item.volume,
+          quantity: item.quantity,
+          discountedPrice: item.discountedPrice,
+          price: item.price,
+          basePrice: variant.basePrice,
+        };
+      }),
       totalAmount: order.totalAmount,
-      appliedDiscounts: order.appliedDiscounts.map((campaign) => ({
-        campaignId: campaign._id.toString(),
-        name: campaign.name,
-        discountRate: campaign.discountRate,
+      appliedDiscounts: order.appliedDiscounts.map((discount) => ({
+        discountId: discount._id.toString(),
+        name: discount.name,
+        discountRate: discount.discountRate,
       })),
       discountAmount: order.discountAmount,
       status: order.status,
@@ -576,6 +585,8 @@ export class OrderService {
       invoiceNumber: order.invoiceNumber,
       invoiceUrl: order.invoiceUrl,
       createdAt: order.createdAt.getTime(),
+      cardLastFourDigits: order.cardDetails.lastFourDigits,
+      taxId: order.taxId,
     }));
   }
 
@@ -603,26 +614,33 @@ export class OrderService {
       .populate({
         path: 'items.perfume',
         model: Perfume.name,
-        select: 'name brand',
+        select: 'name brand variants',
       })
       .populate('appliedDiscounts', 'name discountRate')
       .sort({ createdAt: -1 });
 
     return orders.map((order) => ({
       orderId: order._id.toString(),
-      items: order.items.map((item) => ({
-        perfumeId: item.perfume._id.toString(),
-        perfumeName: (item.perfume as any as Perfume).name,
-        brand: (item.perfume as any as Perfume).brand,
-        volume: item.volume,
-        quantity: item.quantity,
-        price: item.price,
-      })),
+      items: order.items.map((item) => {
+        const variant = (item.perfume as any as Perfume).variants.find(
+          (v) => v.volume === item.volume,
+        );
+        return {
+          perfumeId: item.perfume._id.toString(),
+          perfumeName: (item.perfume as any as Perfume).name,
+          brand: (item.perfume as any as Perfume).brand,
+          volume: item.volume,
+          quantity: item.quantity,
+          discountedPrice: item.discountedPrice,
+          price: item.price,
+          basePrice: variant.basePrice,
+        };
+      }),
       totalAmount: order.totalAmount,
-      appliedDiscounts: order.appliedDiscounts.map((campaign) => ({
-        campaignId: campaign._id.toString(),
-        name: campaign.name,
-        discountRate: campaign.discountRate,
+      appliedDiscounts: order.appliedDiscounts.map((discount) => ({
+        discountId: discount._id.toString(),
+        name: discount.name,
+        discountRate: discount.discountRate,
       })),
       discountAmount: order.discountAmount,
       status: order.status,
@@ -947,5 +965,31 @@ export class OrderService {
     refundRequest.processedAt = new Date();
 
     await refundRequest.save();
+  }
+
+  async cancelOrder(orderId: string): Promise<void> {
+    try {
+      const order = await this.OrderModel.findById(orderId);
+
+      if (!order) {
+        throw new NotFoundException('Order not found');
+      }
+
+      if (order.status !== OrderStatusEnum.PROCESSING) {
+        throw new BadRequestException(
+          'Order cannot be cancelled, it is already in transit or delivered',
+        );
+      }
+
+      await this.OrderModel.deleteOne({ _id: order._id });
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw error;
+    }
   }
 }
