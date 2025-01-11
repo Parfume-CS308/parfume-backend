@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Perfume, PerfumeSchema } from '../entities/perfume.entity';
 import { Category, CategorySchema } from '../entities/category.entity';
 import { Distributor, DistributorSchema } from '../entities/distributor.entity';
+import { DiscountModule } from 'src/discount/discount.module';
 
 @Module({
   imports: [
@@ -22,9 +23,10 @@ import { Distributor, DistributorSchema } from '../entities/distributor.entity';
         schema: DistributorSchema,
       },
     ]),
+    DiscountModule,
   ],
   controllers: [PerfumeController],
   providers: [PerfumeService],
   exports: [PerfumeService],
 })
-export class PerfumeModule {}
+export class PerfumeModule { }

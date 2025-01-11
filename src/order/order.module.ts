@@ -7,10 +7,14 @@ import { Category, CategorySchema } from '../entities/category.entity';
 import { Order, OrderSchema } from '../entities/order.entity';
 import { Perfume, PerfumeSchema } from '../entities/perfume.entity';
 import { Cart, CartSchema } from '../entities/cart.entity';
-import { RefundRequest, RefundRequestSchema } from '../entities/refund_request.entity';
-import { Campaign, CampaignSchema } from '../entities/campaign.entity';
+import {
+  RefundRequest,
+  RefundRequestSchema,
+} from '../entities/refund_request.entity';
 import { CartModule } from '../cart/cart.module';
 import { User, UserSchema } from 'src/entities/user.entity';
+import { DiscountModule } from 'src/discount/discount.module';
+import { PerfumeModule } from 'src/perfume/perfume.module';
 
 @Module({
   imports: [
@@ -36,18 +40,16 @@ import { User, UserSchema } from 'src/entities/user.entity';
         schema: RefundRequestSchema,
       },
       {
-        name: Campaign.name,
-        schema: CampaignSchema,
-      },
-      {
         name: User.name,
         schema: UserSchema,
-      }
+      },
     ]),
     CartModule,
     AuthModule,
+    DiscountModule,
+    PerfumeModule,
   ],
   providers: [OrderService],
-  controllers: [OrderController]
+  controllers: [OrderController],
 })
 export class OrderModule {}

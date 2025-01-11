@@ -34,17 +34,6 @@ export class CreateOrderDto {
   taxId?: string;
 
   @ApiProperty({
-    description: 'Array of campaign IDs to apply to the order',
-    type: [String],
-    required: false,
-    example: ['507f1f77bcf86cd799439011'],
-  })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  campaignIds?: string[];
-
-  @ApiProperty({
     description: 'Payment ID from payment service',
     example: '123e4567-e89b-12d3-a456-426614174000',
     required: true,
@@ -91,7 +80,6 @@ export class CreateOrderDto {
     message: 'Expiration year must be 4 digits',
   })
   expiryDateYY: string;
-
 
   @ApiProperty({
     description: 'Credit card CVV',

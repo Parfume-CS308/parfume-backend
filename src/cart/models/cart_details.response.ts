@@ -37,6 +37,12 @@ export class CartItemDto {
     description: 'Price of the perfume in the cart',
   })
   price: number;
+
+  @ApiProperty({
+    example: 80,
+    description: 'Discounted price of the perfume in the cart',
+  })
+  discountedPrice: number;
 }
 
 export class CartDetailDto {
@@ -57,6 +63,12 @@ export class CartDetailDto {
     description: 'Total price of the shopping cart',
   })
   totalPrice: number;
+
+  @ApiProperty({
+    example: 160,
+    description: 'Total discounted price of the shopping cart',
+  })
+  totalDiscountedPrice: number;
 }
 
 export class CartDetailsResponse extends MessageResponse {

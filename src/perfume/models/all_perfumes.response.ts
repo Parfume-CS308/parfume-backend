@@ -74,6 +74,17 @@ export class PerfumeCategoryDto {
   description: string;
 }
 
+export class ActiveDiscountDto {
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  rate: number;
+
+  @ApiProperty()
+  endDate: Date;
+}
+
 export class AllPerfumeItemDto {
   @ApiProperty({
     example: '507f1f77bcf86cd799439011',
@@ -171,6 +182,9 @@ export class AllPerfumeItemDto {
     description: 'Available variants of this perfume',
   })
   variants: PerfumeVariantDto[];
+
+  @ApiProperty({ type: ActiveDiscountDto, nullable: true })
+  activeDiscount: ActiveDiscountDto | null;
 }
 
 // Now update your response class

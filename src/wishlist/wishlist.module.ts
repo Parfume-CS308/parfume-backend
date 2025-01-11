@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { WishlistService } from './wishlist.service';
 import { WishlistController } from './wishlist.controller';
@@ -12,9 +12,10 @@ import { AuthModule } from 'src/auth/auth.module';
       { name: Wishlist.name, schema: WishlistSchema },
     ]),
     AuthModule,
-    PerfumeModule,
+    forwardRef(() => PerfumeModule)
   ],
   providers: [WishlistService],
   controllers: [WishlistController],
+  exports: [WishlistService]
 })
-export class WishlistModule {}
+export class WishlistModule { }

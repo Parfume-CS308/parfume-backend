@@ -5,6 +5,7 @@ import { Cart } from '../entities/cart.entity';
 import { Perfume } from '../entities/perfume.entity';
 import { CartDetailDto } from './models/cart_details.response';
 import { SyncCartItemDto } from './dto/sync_cart.dto';
+import { DiscountService } from 'src/discount/discount.service';
 
 @Injectable()
 export class CartService {
@@ -14,6 +15,8 @@ export class CartService {
 
     @InjectModel(Perfume.name)
     private readonly PerfumeModel: Model<Perfume>,
+
+    private discountService: DiscountService,
   ) {}
 
   async getCartDetails(userId: string): Promise<CartDetailDto> {
@@ -31,35 +34,48 @@ export class CartService {
         id: newCart._id.toString(),
         items: [],
         totalPrice: 0,
+        totalDiscountedPrice: 0,
       };
     }
 
     let totalPrice = 0;
+    let totalDiscountedPrice = 0;
 
-    const perfumeItemDetails = cart.items.map((item) => {
-      const perfume = item.perfume as Perfume;
-      const variant = perfume.variants.find((v) => v.volume === item.volume);
+    const perfumeItemDetails = await Promise.all(
+      cart.items.map(async (item) => {
+        const perfume = item.perfume as Perfume;
+        const variant = perfume.variants.find((v) => v.volume === item.volume);
 
-      if (!variant) {
-        throw new BadRequestException(
-          `Invalid volume for item ${perfume.name}`,
-        );
-      }
-      totalPrice += variant.price * item.quantity;
-      return {
-        perfumeId: perfume._id.toString(),
-        perfumeName: perfume.name,
-        brand: perfume.brand,
-        volume: item.volume,
-        quantity: item.quantity,
-        price: variant.price,
-      };
-    });
+        if (!variant) {
+          throw new BadRequestException(
+            `Invalid volume for item ${perfume.name}`,
+          );
+        }
+
+        const discountedPrice =
+          await this.discountService.calculateDiscountedPrice(
+            variant.price,
+            item.perfume.toString(),
+          );
+        totalPrice += variant.price * item.quantity;
+        totalDiscountedPrice = discountedPrice * item.quantity;
+        return {
+          perfumeId: perfume._id.toString(),
+          perfumeName: perfume.name,
+          brand: perfume.brand,
+          volume: item.volume,
+          quantity: item.quantity,
+          price: variant.price,
+          discountedPrice,
+        };
+      }),
+    );
 
     return {
       id: cart._id.toString(),
       items: perfumeItemDetails,
       totalPrice,
+      totalDiscountedPrice,
     };
   }
 

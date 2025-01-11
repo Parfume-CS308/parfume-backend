@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -8,7 +10,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId, Types } from 'mongoose';
 import { Order } from '../entities/order.entity';
 import { Perfume } from '../entities/perfume.entity';
-import { Campaign } from '../entities/campaign.entity';
 import { CreateOrderDto } from './dto/create_order.dto';
 import { CartService } from '../cart/cart.service';
 import { OrderStatusEnum, OrderPaymentStatusEnum } from '../enums/entity.enums';
@@ -18,11 +19,12 @@ import {
 } from '../entities/refund_request.entity';
 import { CreateRefundRequestDto } from './dto/refund_request.dto';
 import { hashSync } from 'bcryptjs';
-import * as PDFDocument from 'pdfkit';
 import { format } from 'date-fns';
 import * as nodemailer from 'nodemailer';
 import * as puppeteer from 'puppeteer';
 import { User } from 'src/entities/user.entity';
+import { DiscountService } from '../discount/discount.service';
+import { PerfumeService } from 'src/perfume/perfume.service';
 
 @Injectable()
 export class OrderService {
@@ -38,13 +40,14 @@ export class OrderService {
     @InjectModel(RefundRequest.name)
     private readonly RefundRequestModel: Model<RefundRequest>,
 
-    @InjectModel(Campaign.name)
-    private readonly CampaignModel: Model<Campaign>,
-
     @InjectModel(User.name)
     private readonly UserModel: Model<User>,
 
     private readonly cartService: CartService,
+    @Inject(forwardRef(() => DiscountService))
+    private discountService: DiscountService,
+    @Inject(forwardRef(() => PerfumeService))
+    private perfumeService: PerfumeService,
   ) {}
 
   onModuleInit() {
@@ -124,39 +127,38 @@ export class OrderService {
       volume: number;
       quantity: number;
     }>,
-    campaignIds?: string[],
   ): Promise<{
     perfumes: Array<{
       perfume: Perfume;
       volume: number;
       quantity: number;
       price: number;
+      discountedPrice: number;
       totalPrice: number;
     }>;
-    campaigns?: Campaign[];
     totalAmount: number;
-    campaignDiscountAmount: number;
   }> {
-    const perfumes = [];
     let totalAmount = 0;
+    const perfumes = [];
 
     for (const item of items) {
-      const perfume = await this.PerfumeModel.findById(item.perfumeId);
-      if (!perfume) {
-        throw new BadRequestException(`Perfume not found: ${item.perfumeId}`);
-      }
-
-      const variant = perfume.variants.find(
-        (v) => v.volume === item.volume && v.active && v.stock >= item.quantity,
-      );
+      const perfume = await this.perfumeService.getPerfumeById(item.perfumeId);
+      const variant = perfume.variants.find((v) => v.volume === item.volume);
 
       if (!variant) {
         throw new BadRequestException(
-          `Invalid volume or insufficient stock for perfume: ${perfume.name}`,
+          `Invalid volume for perfume ${perfume.name}`,
         );
       }
 
-      const itemTotalPrice = variant.price * item.quantity;
+      // Get discounted price if any
+      const discountedPrice =
+        await this.discountService.calculateDiscountedPrice(
+          variant.price,
+          item.perfumeId,
+        );
+
+      const itemTotalPrice = discountedPrice * item.quantity;
       totalAmount += itemTotalPrice;
 
       perfumes.push({
@@ -164,41 +166,12 @@ export class OrderService {
         volume: item.volume,
         quantity: item.quantity,
         price: variant.price,
+        discountedPrice,
         totalPrice: itemTotalPrice,
       });
     }
 
-    let campaignDiscountAmount = 0;
-    let appliedCampaigns: Campaign[] = [];
-
-    if (campaignIds && campaignIds.length > 0) {
-      const campaigns = await this.CampaignModel.find({
-        _id: { $in: campaignIds },
-        active: true,
-        startDate: { $lte: new Date() },
-        endDate: { $gte: new Date() },
-      });
-
-      if (campaigns.length !== campaignIds.length) {
-        throw new BadRequestException(
-          'One or more campaigns are invalid or expired',
-        );
-      }
-
-      // Apply campaign discounts
-      for (const campaign of campaigns) {
-        const discountAmount = (totalAmount * campaign.discountRate) / 100;
-        campaignDiscountAmount += discountAmount;
-        appliedCampaigns.push(campaign);
-      }
-    }
-
-    return {
-      perfumes,
-      campaigns: appliedCampaigns,
-      totalAmount,
-      campaignDiscountAmount,
-    };
+    return { perfumes, totalAmount };
   }
 
   async generateInvoicePDF(order, user: User): Promise<Buffer> {
@@ -324,10 +297,10 @@ export class OrderService {
         </table>
 
         <div class="totals">
-          <div><strong>Subtotal:</strong> $${(order.totalAmount + order.campaignDiscountAmount).toFixed(2)}</div>
+          <div><strong>Subtotal:</strong> $${(order.totalAmount + order.discountAmount).toFixed(2)}</div>
           ${
-            order.campaignDiscountAmount > 0
-              ? `<div><strong>Campaign Discount:</strong> -$${order.campaignDiscountAmount.toFixed(2)}</div>`
+            order.discountAmount > 0
+              ? `<div><strong>Campaign Discount:</strong> -$${order.discountAmount.toFixed(2)}</div>`
               : ''
           }
           <div class="grand-total"><strong>Total Amount:</strong> $${order.totalAmount.toFixed(2)}</div>
@@ -430,13 +403,14 @@ export class OrderService {
     orderId: string;
     invoiceNumber: string;
     totalAmount: number;
-    campaignDiscountAmount: number;
+    discountAmount: number;
     items: Array<{
       perfumeId: string;
       perfumeName: string;
       volume: number;
       quantity: number;
       price: number;
+      discountedPrice: number;
     }>;
     shippingAddress: string;
     cardLastFourDigits: string;
@@ -450,8 +424,8 @@ export class OrderService {
       );
     }
 
-    const { perfumes, campaigns, totalAmount, campaignDiscountAmount } =
-      await this.validateAndCalculateOrder(orderItems, input.campaignIds);
+    const { perfumes, totalAmount } =
+      await this.validateAndCalculateOrder(orderItems);
 
     const cardDetails: {
       number: string;
@@ -469,18 +443,41 @@ export class OrderService {
       lastFourDigits: input.cardNumber.slice(-4),
     };
 
+    // for each perfume, check if any discount is applied, if so, add it to appliedDiscounts also calculate discountAmount
+    const appliedDiscounts = [];
+    let discountAmount = 0;
+    for (const perfume of perfumes) {
+      console.log(perfume);
+      const activeDiscount =
+        await this.discountService.getActiveDiscountForPerfume(
+          perfume.perfume.id,
+        );
+
+      if (activeDiscount) {
+        perfume.discountedPrice =
+          perfume.price * (1 - activeDiscount.discountRate / 100);
+        perfume.totalPrice = perfume.discountedPrice * perfume.quantity;
+        discountAmount += perfume.price * perfume.quantity - perfume.totalPrice;
+        appliedDiscounts.push(activeDiscount._id);
+      } else {
+        perfume.discountedPrice = perfume.price;
+        perfume.totalPrice = perfume.price * perfume.quantity;
+      }
+    }
+
     const order = new this.OrderModel({
       user: new Types.ObjectId(userId),
       items: perfumes.map((p) => ({
-        perfume: p.perfume._id,
+        perfume: new Types.ObjectId(p.perfume.id),
         volume: p.volume,
         quantity: p.quantity,
+        discountedPrice: p.discountedPrice,
         price: p.price,
         totalPrice: p.totalPrice,
       })),
       totalAmount,
-      appliedCampaigns: campaigns?.map((c) => c._id) || [],
-      campaignDiscountAmount,
+      appliedDiscounts,
+      discountAmount,
       status: OrderStatusEnum.PROCESSING,
       paymentStatus: OrderPaymentStatusEnum.COMPLETED,
       shippingAddress: input.shippingAddress,
@@ -521,12 +518,13 @@ export class OrderService {
         orderId: (order._id as Types.ObjectId).toHexString(),
         invoiceNumber: order.invoiceNumber,
         totalAmount: order.totalAmount,
-        campaignDiscountAmount: order.campaignDiscountAmount,
+        discountAmount: order.discountAmount,
         items: orderData.items.map((item) => ({
           perfumeId: (item.perfume._id as Types.ObjectId).toHexString(),
           perfumeName: (item.perfume as any as Perfume).name,
           volume: item.volume,
           quantity: item.quantity,
+          discountedPrice: item.discountedPrice,
           price: item.price,
         })),
         shippingAddress: order.shippingAddress,
@@ -549,7 +547,7 @@ export class OrderService {
         model: Perfume.name,
         select: 'name brand',
       })
-      .populate('appliedCampaigns', 'name discountRate')
+      .populate('appliedDiscounts', 'name discountRate')
       .sort({ createdAt: -1 });
 
     return orders.map((order) => ({
@@ -566,12 +564,12 @@ export class OrderService {
         price: item.price,
       })),
       totalAmount: order.totalAmount,
-      appliedCampaigns: order.appliedCampaigns.map((campaign) => ({
+      appliedDiscounts: order.appliedDiscounts.map((campaign) => ({
         campaignId: campaign._id.toString(),
         name: campaign.name,
         discountRate: campaign.discountRate,
       })),
-      campaignDiscountAmount: order.campaignDiscountAmount,
+      discountAmount: order.discountAmount,
       status: order.status,
       shippingAddress: order.shippingAddress,
       paymentStatus: order.paymentStatus,
@@ -608,7 +606,7 @@ export class OrderService {
         model: Perfume.name,
         select: 'name brand',
       })
-      .populate('appliedCampaigns', 'name discountRate')
+      .populate('appliedDiscounts', 'name discountRate')
       .sort({ createdAt: -1 });
 
     return orders.map((order) => ({
@@ -622,12 +620,12 @@ export class OrderService {
         price: item.price,
       })),
       totalAmount: order.totalAmount,
-      appliedCampaigns: order.appliedCampaigns.map((campaign) => ({
+      appliedDiscounts: order.appliedDiscounts.map((campaign) => ({
         campaignId: campaign._id.toString(),
         name: campaign.name,
         discountRate: campaign.discountRate,
       })),
-      campaignDiscountAmount: order.campaignDiscountAmount,
+      discountAmount: order.discountAmount,
       status: order.status,
       shippingAddress: order.shippingAddress,
       paymentStatus: order.paymentStatus,
@@ -706,8 +704,7 @@ export class OrderService {
         );
       }
 
-      const itemDiscountRatio =
-        order.campaignDiscountAmount / order.totalAmount;
+      const itemDiscountRatio = order.discountAmount / order.totalAmount;
       const itemRefundPrice = orderItem.price * (1 - itemDiscountRatio);
       const refundAmount = itemRefundPrice * refundItem.quantity;
 

@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -20,6 +22,7 @@ export class WishlistService {
 
   constructor(
     @InjectModel(Wishlist.name) private wishlistModel: Model<Wishlist>,
+    @Inject(forwardRef(() => PerfumeService))
     private perfumeService: PerfumeService,
   ) {}
 
@@ -189,5 +192,19 @@ export class WishlistService {
       );
       throw new InternalServerErrorException('Failed to clear wishlist');
     }
+  }
+
+  async getUsersWithPerfumesInWishlist(perfumeIds: string[]) {
+    const parsedPerfumeIds = perfumeIds.map((id) => new Types.ObjectId(id));
+    const wishlists = await this.wishlistModel
+      .find({
+        perfumes: { $in: parsedPerfumeIds },
+      })
+      .populate('user', 'email');
+
+    const allUsersEmail = wishlists.map((wishlist) => wishlist.user.email);
+
+    const allDistinctUsersEmail = Array.from(new Set(allUsersEmail));
+    return allDistinctUsersEmail;
   }
 }

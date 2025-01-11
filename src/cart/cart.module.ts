@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Perfume, PerfumeSchema } from '../entities/perfume.entity';
 import { Cart, CartSchema } from '../entities/cart.entity';
 import { AuthModule } from '../auth/auth.module';
+import { DiscountModule } from 'src/discount/discount.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AuthModule } from '../auth/auth.module';
       },
     ]),
     AuthModule,
+    DiscountModule,
   ],
   providers: [CartService],
   controllers: [CartController],

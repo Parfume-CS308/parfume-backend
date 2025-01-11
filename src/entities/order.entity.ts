@@ -2,8 +2,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Perfume } from './perfume.entity';
 import { User } from './user.entity';
-import { Campaign } from './campaign.entity';
 import { OrderPaymentStatusEnum, OrderStatusEnum } from '../enums/entity.enums';
+import { Discount } from './discount.entity';
 
 @Schema({
   timestamps: true,
@@ -19,6 +19,7 @@ export class Order extends Document {
       volume: Number,
       quantity: Number,
       price: Number,
+      discountedPrice: Number,
     },
   ])
   items: Array<{
@@ -26,16 +27,17 @@ export class Order extends Document {
     volume: number;
     quantity: number;
     price: number;
+    discountedPrice: number;
   }>;
 
   @Prop({ required: true })
   totalAmount: number;
 
-  @Prop({ type: [Types.ObjectId], ref: Campaign.name })
-  appliedCampaigns?: Campaign[];
+  @Prop({ type: [Types.ObjectId], ref: Discount.name })
+  appliedDiscounts?: Discount[];
 
   @Prop({ default: 0 })
-  campaignDiscountAmount: number;
+  discountAmount: number;
 
   @Prop({
     required: true,

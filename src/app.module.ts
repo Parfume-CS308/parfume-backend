@@ -44,4 +44,4 @@ import { DiscountModule } from './discount/discount.module';
     DiscountModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }
