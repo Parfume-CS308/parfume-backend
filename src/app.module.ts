@@ -11,7 +11,6 @@ import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
 import { UploadModule } from './productImage/upload.module';
 import { WishlistModule } from './wishlist/wishlist.module';
-import { ProductManagementModule } from './product_management/product_management.module';
 import { DiscountModule } from './discount/discount.module';
 
 @Module({
@@ -38,7 +37,6 @@ import { DiscountModule } from './discount/discount.module';
     OrderModule,
     UploadModule,
     WishlistModule,
-    ProductManagementModule,
     DiscountModule,
   ],
 })
