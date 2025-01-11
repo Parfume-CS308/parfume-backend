@@ -447,7 +447,6 @@ export class OrderService {
     const appliedDiscounts = [];
     let discountAmount = 0;
     for (const perfume of perfumes) {
-      console.log(perfume);
       const activeDiscount =
         await this.discountService.getActiveDiscountForPerfume(
           perfume.perfume.id,

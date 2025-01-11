@@ -51,7 +51,6 @@ export class CartService {
             `Invalid volume for item ${perfume.name}`,
           );
         }
-        console.log('perfume', perfume);
         const discountedPrice =
           await this.discountService.calculateDiscountedPrice(
             variant.price,
