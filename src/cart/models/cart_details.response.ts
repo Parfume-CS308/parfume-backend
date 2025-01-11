@@ -36,7 +36,7 @@ export class CartItemDto {
     example: 90,
     description: 'Price of the perfume in the cart',
   })
-  basePrice: number;
+  price: number;
 }
 
 export class CartDetailDto {

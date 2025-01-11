@@ -22,7 +22,6 @@ import { AuthGuard } from '../guards/auth.guard';
 import { RolesGuard } from '../guards/role.guard';
 import { Roles } from '../decorators/role.decorator';
 import { AllOrdersResponse } from './models/all_orders.resppnse';
-import { PerfumeIdDto } from '../review/dto/perfume_id.dto';
 import { Response } from 'express';
 import { User } from '../decorators/user.decorator';
 import { AuthTokenPayload } from '../auth/interfaces/auth-types';
@@ -217,7 +216,7 @@ export class OrderController {
 
   @Get('refundRequests/all')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('product-manager')
+  @Roles('product-manager', 'sales-manager')
   @ApiOperation({
     summary: 'Get all refund requests in the system',
     description: 'Get all refund requests for managers',
@@ -254,7 +253,7 @@ export class OrderController {
 
   @Post('refundRequests/:refundRequestId/approve')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('product-manager')
+  @Roles('product-manager', 'sales-manager')
   @ApiOperation({
     summary: 'Approve a refund request',
     description: 'Approve a refund request by the sales manager',
@@ -291,7 +290,7 @@ export class OrderController {
 
   @Delete('refundRequests/:refundRequestId/reject')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('product-manager')
+  @Roles('product-manager', 'sales-manager')
   @ApiOperation({
     summary: 'Reject a refund request',
     description: 'Reject a refund request by the sales manager',
@@ -330,7 +329,7 @@ export class OrderController {
 
   @Get('all')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('product-manager')
+  @Roles('product-manager', 'sales-manager')
   @ApiOperation({
     summary: 'Get all of the orders, only for managers',
     description: 'Get all of the orders, only for managers',

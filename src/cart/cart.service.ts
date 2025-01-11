@@ -52,7 +52,7 @@ export class CartService {
         brand: perfume.brand,
         volume: item.volume,
         quantity: item.quantity,
-        basePrice: variant.price,
+        price: variant.price,
       };
     });
 
