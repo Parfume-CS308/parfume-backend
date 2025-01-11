@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, ObjectId, Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Order } from '../entities/order.entity';
 import { Perfume } from '../entities/perfume.entity';
 import { CreateOrderDto } from './dto/create_order.dto';

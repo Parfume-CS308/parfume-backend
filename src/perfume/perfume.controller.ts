@@ -2,10 +2,12 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   InternalServerErrorException,
   Logger,
   Param,
+  Patch,
   Post,
   Res,
 } from '@nestjs/common';
@@ -22,6 +24,8 @@ import { Response } from 'express';
 import { PerfumeDetailResponse } from './models/perfume_detail.response';
 import { GetPerfumeDetailDto } from './dto/get_perfume_detail.dto';
 import { PerfumeFilterDto } from './dto/get_perfumes.dto';
+import { CreatePerfumeDto } from './dto/create_perfume.dto';
+import { DeletePerfumeDto } from './dto/delete_perfume.dto';
 
 @Controller('perfumes')
 @ApiTags('Perfumes')
@@ -109,6 +113,167 @@ export class PerfumeController {
         throw error;
       }
       throw new InternalServerErrorException('Failed to fetch perfume by id');
+    }
+  }
+  @Post('add')
+  @ApiOperation({
+    summary: 'Create a new perfume',
+    description:
+      'Creates a new perfume entry in the database with detailed information.',
+  })
+  @ApiOkResponse({
+    description: 'Perfume created successfully',
+    schema: {
+      example: {
+        message: 'Perfume created successfully',
+        item: {
+          id: '507f1f77bcf86cd799439011',
+          name: 'Midnight Rose',
+          brand: 'Chanel',
+        },
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An internal server error occurred',
+  })
+  async createPerfume(
+    @Body() createPerfumeDto: CreatePerfumeDto,
+    @Res() res: Response,
+  ): Promise<Response> {
+    try {
+      Logger.log('Creating a new perfume', 'PerfumeController.createPerfume');
+
+      const newPerfume =
+        await this.perfumeService.createPerfume(createPerfumeDto);
+      Logger.log(
+        `Perfume created with id: ${newPerfume.id}`,
+        'PerfumeController.createPerfume',
+      );
+
+      return res.status(201).json({
+        message: 'Perfume created successfully',
+        item: newPerfume,
+      });
+    } catch (error) {
+      Logger.error(
+        'Failed to create perfume',
+        error,
+        'PerfumeController.createPerfume',
+      );
+      throw new InternalServerErrorException('Failed to create perfume');
+    }
+  }
+
+  @Delete('remove/:perfumeId')
+  @ApiOperation({
+    summary: 'Remove a perfume',
+    description:
+      'Deletes a perfume entry from the database based on the provided ID.',
+  })
+  @ApiParam({
+    name: 'perfumeId',
+    type: String,
+    description: 'The unique identifier of the perfume to remove.',
+  })
+  @ApiOkResponse({
+    description: 'Perfume removed successfully',
+    schema: {
+      example: {
+        message: 'Perfume removed successfully',
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An internal server error occurred',
+  })
+  async removePerfume(
+    @Param() input: DeletePerfumeDto,
+    @Res() res: Response,
+  ): Promise<Response> {
+    try {
+      Logger.log(
+        `Removing perfume with id: ${input.id}`,
+        'PerfumeController.removePerfume',
+      );
+
+      await this.perfumeService.removePerfume(input.id);
+      Logger.log(
+        `Successfully removed perfume with id: ${input.id}`,
+        'PerfumeController.removePerfume',
+      );
+
+      return res.status(200).json({
+        message: 'Perfume removed successfully',
+      });
+    } catch (error) {
+      Logger.error(
+        `Failed to remove perfume with id: ${input.id}`,
+        error,
+        'PerfumeController.removePerfume',
+      );
+      throw new InternalServerErrorException('Failed to remove perfume');
+    }
+  }
+
+  @Patch('update/:perfumeId')
+  @ApiOperation({
+    summary: 'Update a perfume',
+    description:
+      'Updates an existing perfume entry in the database with new data.',
+  })
+  @ApiParam({
+    name: 'perfumeId',
+    type: String,
+    description: 'The unique identifier of the perfume to update.',
+  })
+  @ApiOkResponse({
+    description: 'Perfume updated successfully',
+    schema: {
+      example: {
+        message: 'Perfume updated successfully',
+        item: {
+          id: '507f1f77bcf86cd799439011',
+          name: 'Updated Name',
+          brand: 'Updated Brand',
+        },
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An internal server error occurred',
+  })
+  async updatePerfume(
+    @Param('perfumeId') perfumeId: string,
+    @Body() updatePerfumeDto: CreatePerfumeDto,
+    @Res() res: Response,
+  ): Promise<Response> {
+    try {
+      Logger.log(
+        `Updating perfume with id: ${perfumeId}`,
+        'PerfumeController.updatePerfume',
+      );
+
+      const updatedPerfume = await this.perfumeService.updatePerfume(
+        perfumeId,
+        updatePerfumeDto,
+      );
+      Logger.log(
+        `Successfully updated perfume with id: ${perfumeId}`,
+        'PerfumeController.updatePerfume',
+      );
+
+      return res.status(200).json({
+        message: 'Perfume updated successfully',
+        item: updatedPerfume,
+      });
+    } catch (error) {
+      Logger.error(
+        `Failed to update perfume with id: ${perfumeId}`,
+        error,
+        'PerfumeController.updatePerfume',
+      );
+      throw new InternalServerErrorException('Failed to update perfume');
     }
   }
 }

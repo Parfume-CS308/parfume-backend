@@ -1,11 +1,35 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PerfumeTypeEnum } from '../../enums/entity.enums';
 import {
-  PerfumeVariantDto,
   PerfumeDistributorDto,
   PerfumeCategoryDto,
 } from '../models/all_perfumes.response';
 
+export class CreatePerfumeVariantDto {
+  @ApiProperty({
+    example: 100,
+    description: 'Volume of the perfume in milliliters',
+  })
+  volume: number;
+
+  @ApiProperty({
+    example: 149.99,
+    description: 'Current price after any discounts',
+  })
+  price: number;
+
+  @ApiProperty({
+    example: 119.99,
+    description: 'Base price',
+  })
+  basePrice: number;
+
+  @ApiProperty({
+    example: 50,
+    description: 'Current stock quantity',
+  })
+  stock: number;
+}
 export class CreatePerfumeDto {
   @ApiProperty({
     example: 'Midnight Rose',
@@ -18,6 +42,12 @@ export class CreatePerfumeDto {
     description: 'Brand of the perfume',
   })
   brand: string;
+
+  @ApiProperty({
+    description: 'Image file of the perfume, in UUIDv4 format',
+    example: '24b3e7b5-c3a4-47a4-8cb7-1bf771cf6bf8',
+  })
+  assetId: string; // This should be a file upload response, uuid
 
   @ApiProperty({
     example: ['rose', 'oud', 'vanilla'],
@@ -87,8 +117,8 @@ export class CreatePerfumeDto {
   categories: PerfumeCategoryDto[];
 
   @ApiProperty({
-    type: [PerfumeVariantDto],
+    type: [CreatePerfumeVariantDto],
     description: 'Available variants of this perfume',
   })
-  variants: PerfumeVariantDto[];
+  variants: CreatePerfumeVariantDto[];
 }
