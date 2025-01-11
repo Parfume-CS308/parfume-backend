@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -147,7 +148,7 @@ export class CategoryController {
 
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('product-manager')
+  @Roles('sales-manager', 'product-manager')
   @ApiOperation({
     summary: 'Delete a category',
     description: 'Delete a category by its id',
@@ -182,6 +183,9 @@ export class CategoryController {
         message: 'Category deleted successfully',
       });
     } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Failed to delete category');
     }
   }

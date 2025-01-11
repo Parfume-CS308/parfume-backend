@@ -4,6 +4,7 @@ import { CategoryService } from './category.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Category, CategorySchema } from '../entities/category.entity';
 import { AuthModule } from '../auth/auth.module';
+import { Perfume, PerfumeSchema } from 'src/entities/perfume.entity';
 
 @Module({
   imports: [
@@ -11,6 +12,10 @@ import { AuthModule } from '../auth/auth.module';
       {
         name: Category.name,
         schema: CategorySchema,
+      },
+      {
+        name: Perfume.name,
+        schema: PerfumeSchema,
       },
     ]),
     AuthModule,

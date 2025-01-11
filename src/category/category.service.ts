@@ -4,12 +4,16 @@ import { Model, Types } from 'mongoose';
 import { Category } from '../entities/category.entity';
 import { CategoryInformation } from './interfaces/category-types';
 import { CreateCategoryDto } from './dto/create_category.dto';
+import { Perfume } from 'src/entities/perfume.entity';
 
 @Injectable()
 export class CategoryService {
   constructor(
     @InjectModel(Category.name)
     private readonly CategoryModel: Model<Category>,
+
+    @InjectModel(Perfume.name)
+    private readonly PerfumeModel: Model<Perfume>,
   ) {}
 
   async getAllCategories(): Promise<CategoryInformation[]> {
@@ -71,6 +75,22 @@ export class CategoryService {
   }
 
   async deleteCategory(id: string): Promise<void> {
+    // check if the category is used in any perfume
+    const category = await this.CategoryModel.findById(id);
+
+    if (!category) {
+      throw new BadRequestException('Category not found');
+    }
+
+    const perfumes = await this.PerfumeModel.find({
+      categories: { $in: [category._id] },
+    });
+
+    if (perfumes.length > 0) {
+      throw new BadRequestException(
+        'Category is used in perfumes, delete the perfumes first',
+      );
+    }
     await this.CategoryModel.findByIdAndDelete(id);
   }
 }
