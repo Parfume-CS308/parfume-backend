@@ -217,7 +217,7 @@ export class OrderController {
 
   @Get('refundRequests/all')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('sales-manager')
+  @Roles('product-manager')
   @ApiOperation({
     summary: 'Get all refund requests in the system',
     description: 'Get all refund requests for managers',
@@ -254,7 +254,7 @@ export class OrderController {
 
   @Post('refundRequests/:refundRequestId/approve')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('sales-manager')
+  @Roles('product-manager')
   @ApiOperation({
     summary: 'Approve a refund request',
     description: 'Approve a refund request by the sales manager',
@@ -291,7 +291,7 @@ export class OrderController {
 
   @Delete('refundRequests/:refundRequestId/reject')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('sales-manager')
+  @Roles('product-manager')
   @ApiOperation({
     summary: 'Reject a refund request',
     description: 'Reject a refund request by the sales manager',
@@ -330,7 +330,7 @@ export class OrderController {
 
   @Get('all')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('sales-manager', 'product-manager')
+  @Roles('product-manager')
   @ApiOperation({
     summary: 'Get all of the orders, only for managers',
     description: 'Get all of the orders, only for managers',
@@ -376,7 +376,7 @@ export class OrderController {
 
   @Post('updateStatus/:orderId/:status')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('sales-manager', 'product-manager')
+  @Roles('product-manager')
   @ApiOperation({
     summary: 'Update the status of an order',
     description: 'Update the status of an order',
