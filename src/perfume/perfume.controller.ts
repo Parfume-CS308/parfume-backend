@@ -6,6 +6,7 @@ import {
   Get,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -156,6 +157,12 @@ export class PerfumeController {
         item: newPerfume,
       });
     } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
       Logger.error(
         'Failed to create perfume',
         error,
@@ -165,14 +172,14 @@ export class PerfumeController {
     }
   }
 
-  @Delete('remove/:perfumeId')
+  @Delete('remove/:id')
   @ApiOperation({
     summary: 'Remove a perfume',
     description:
       'Deletes a perfume entry from the database based on the provided ID.',
   })
   @ApiParam({
-    name: 'perfumeId',
+    name: 'id',
     type: String,
     description: 'The unique identifier of the perfume to remove.',
   })
@@ -207,6 +214,12 @@ export class PerfumeController {
         message: 'Perfume removed successfully',
       });
     } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
       Logger.error(
         `Failed to remove perfume with id: ${input.id}`,
         error,

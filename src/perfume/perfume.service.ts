@@ -15,6 +15,7 @@ import { PerfumeFilterDto, PerfumeSortingEnum } from './dto/get_perfumes.dto';
 import { DiscountService } from '../discount/discount.service';
 import { CreatePerfumeDto } from './dto/create_perfume.dto';
 import { Category } from 'src/entities/category.entity';
+import { Distributor } from 'src/entities/distributor.entity';
 
 @Injectable()
 export class PerfumeService {
@@ -23,6 +24,8 @@ export class PerfumeService {
     private readonly PerfumeModel: Model<Perfume>,
     @InjectModel(Category.name)
     private readonly CategoryModel: Model<Category>,
+    @InjectModel(Distributor.name)
+    private readonly DistributorModel: Model<Distributor>,
     @Inject(forwardRef(() => DiscountService))
     private discountService: DiscountService,
   ) {}
@@ -295,7 +298,9 @@ export class PerfumeService {
     };
   }
 
-  async createPerfume(createPerfumeDto: CreatePerfumeDto): Promise<Perfume> {
+  async createPerfume(
+    createPerfumeDto: CreatePerfumeDto,
+  ): Promise<PerfumeDetailDto> {
     // check for if the categories exist
     const categories = await this.CategoryModel.find({
       _id: { $in: createPerfumeDto.categories.map((category) => category.id) },
@@ -305,6 +310,17 @@ export class PerfumeService {
         'Invalid category id, some of the categories are not found',
       );
     }
+
+    const distributor = new this.DistributorModel({
+      name: createPerfumeDto.distributor.name,
+      contactPerson: createPerfumeDto.distributor.contactPerson,
+      email: createPerfumeDto.distributor.email,
+      phone: createPerfumeDto.distributor.phone,
+      address: createPerfumeDto.distributor.address,
+    });
+
+    await distributor.save();
+
     const perfume = new this.PerfumeModel({
       name: createPerfumeDto.name,
       brand: createPerfumeDto.brand,
@@ -318,30 +334,38 @@ export class PerfumeService {
       description: createPerfumeDto.description,
       serialNumber: createPerfumeDto.serialNumber,
       warrantyStatus: createPerfumeDto.warrantyStatus,
-      distributor: createPerfumeDto.distributor,
+      distributor: distributor._id,
       categories: createPerfumeDto.categories.map((categoryItem) => {
-        return {
-          id: new Types.ObjectId(categoryItem.id),
-          name: categoryItem.name,
-          description: categoryItem.description,
-        };
+        return new Types.ObjectId(categoryItem.id);
       }),
       variants: createPerfumeDto.variants,
     });
-    return perfume.save();
+    await perfume.save();
+    const perfumeDetails = await this.getPerfumeById(
+      (perfume._id as Types.ObjectId).toHexString(),
+    );
+    return perfumeDetails;
   }
 
   async removePerfume(perfumeId: string): Promise<void> {
-    const result = await this.PerfumeModel.findByIdAndDelete(perfumeId);
-    if (!result) {
+    const perfume = await this.PerfumeModel.findById(perfumeId);
+    if (!perfume) {
       throw new NotFoundException('Perfume not found');
     }
+    const distributor = await this.DistributorModel.findById(
+      perfume.distributor,
+    );
+    if (!distributor) {
+      throw new NotFoundException('Distributor not found');
+    }
+    await this.DistributorModel.findByIdAndDelete(distributor._id);
+    await this.PerfumeModel.findByIdAndDelete(perfumeId);
   }
 
   async updatePerfume(
     perfumeId: string,
     updatePerfumeDto: CreatePerfumeDto,
-  ): Promise<Perfume> {
+  ): Promise<PerfumeDetailDto> {
     const perfume = await this.PerfumeModel.findById(perfumeId);
     if (!perfume) {
       throw new NotFoundException('Perfume not found');
@@ -354,6 +378,16 @@ export class PerfumeService {
         'Invalid category id, some of the categories are not found',
       );
     }
+
+    const distributor = new this.DistributorModel({
+      name: updatePerfumeDto.distributor.name,
+      contactPerson: updatePerfumeDto.distributor.contactPerson,
+      email: updatePerfumeDto.distributor.email,
+      phone: updatePerfumeDto.distributor.phone,
+      address: updatePerfumeDto.distributor.address,
+    });
+
+    await distributor.save();
     const updatedPerfume = await this.PerfumeModel.findByIdAndUpdate(
       perfumeId,
       {
@@ -369,13 +403,9 @@ export class PerfumeService {
         description: updatePerfumeDto.description,
         serialNumber: updatePerfumeDto.serialNumber,
         warrantyStatus: updatePerfumeDto.warrantyStatus,
-        distributor: updatePerfumeDto.distributor,
+        distributor: distributor._id,
         categories: updatePerfumeDto.categories.map((categoryItem) => {
-          return {
-            id: new Types.ObjectId(categoryItem.id),
-            name: categoryItem.name,
-            description: categoryItem.description,
-          };
+          return new Types.ObjectId(categoryItem.id);
         }),
         variants: updatePerfumeDto.variants,
       },
@@ -384,6 +414,7 @@ export class PerfumeService {
     if (!updatedPerfume) {
       throw new NotFoundException('Perfume not found');
     }
-    return updatedPerfume;
+    const perfumeDetails = await this.getPerfumeById(perfumeId);
+    return perfumeDetails;
   }
 }

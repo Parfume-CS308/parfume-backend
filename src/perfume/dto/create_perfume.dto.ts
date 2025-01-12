@@ -30,6 +30,15 @@ export class CreatePerfumeVariantDto {
   })
   stock: number;
 }
+
+export class CreatePerfumeCategoryDto {
+  @ApiProperty({
+    example: '507f1f77bcf86cd799439011',
+    description: 'Unique identifier of the category',
+  })
+  id: string;
+}
+
 export class CreatePerfumeDto {
   @ApiProperty({
     example: 'Midnight Rose',
@@ -111,10 +120,10 @@ export class CreatePerfumeDto {
   distributor: PerfumeDistributorDto;
 
   @ApiProperty({
-    type: [PerfumeCategoryDto],
+    type: [CreatePerfumeCategoryDto],
     description: 'Categories this perfume belongs to',
   })
-  categories: PerfumeCategoryDto[];
+  categories: CreatePerfumeCategoryDto[];
 
   @ApiProperty({
     type: [CreatePerfumeVariantDto],
