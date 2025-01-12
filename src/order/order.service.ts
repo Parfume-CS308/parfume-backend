@@ -25,11 +25,10 @@ import * as puppeteer from 'puppeteer';
 import { User } from 'src/entities/user.entity';
 import { DiscountService } from '../discount/discount.service';
 import { PerfumeService } from 'src/perfume/perfume.service';
+import { AuthTokenPayload } from 'src/auth/interfaces/auth-types';
 
 @Injectable()
 export class OrderService {
-  private readonly statusUpdateInterval: NodeJS.Timeout;
-
   constructor(
     @InjectModel(Order.name)
     private readonly OrderModel: Model<Order>,
@@ -49,77 +48,6 @@ export class OrderService {
     @Inject(forwardRef(() => PerfumeService))
     private perfumeService: PerfumeService,
   ) {}
-
-  onModuleInit() {
-    this.startStatusUpdateInterval();
-  }
-
-  onModuleDestroy() {
-    if (this.statusUpdateInterval) {
-      clearInterval(this.statusUpdateInterval);
-    }
-  }
-
-  private startStatusUpdateInterval() {
-    setInterval(async () => {
-      Logger.log(
-        'Interval has started to update order statuses, this is a mock implementation for demonstration purposes',
-      );
-      await this.updateOrderStatuses();
-    }, 15000);
-  }
-
-  private async updateOrderStatuses() {
-    try {
-      const processingOrders = await this.OrderModel.find({
-        status: OrderStatusEnum.PROCESSING,
-      });
-      Logger.log(`Found ${processingOrders.length} processing orders`);
-      for (const order of processingOrders) {
-        if (order.paymentStatus === OrderPaymentStatusEnum.PENDING) {
-          const paymentSuccess = Math.random() < 0.4;
-
-          if (paymentSuccess) {
-            Logger.log(`Order ${order._id} payment will be completed`);
-            await this.OrderModel.updateOne(
-              { _id: order._id },
-              {
-                $set: {
-                  paymentStatus: OrderPaymentStatusEnum.COMPLETED,
-                  status: OrderStatusEnum.IN_TRANSIT,
-                },
-              },
-            );
-            Logger.log(
-              `Order ${order._id} payment completed and status updated to IN_TRANSIT`,
-            );
-          }
-          Logger.log(`Order ${order._id} payment will be delayed`);
-          continue;
-        }
-      }
-
-      const inTransitOrders = await this.OrderModel.find({
-        status: OrderStatusEnum.IN_TRANSIT,
-      });
-      Logger.log(`Found ${inTransitOrders.length} in-transit orders`);
-      for (const order of inTransitOrders) {
-        // Mock delivery completion (50% chance)
-        if (Math.random() < 0.5) {
-          Logger.log(`Order ${order._id} will be delivered`);
-          await this.OrderModel.updateOne(
-            { _id: order._id },
-            { $set: { status: OrderStatusEnum.DELIVERED } },
-          );
-          Logger.log(`Order ${order._id} delivered successfully`);
-        } else {
-          Logger.log(`Order ${order._id} delivery will be delayed`);
-        }
-      }
-    } catch (error) {
-      Logger.error('Failed to update order statuses', error.stack);
-    }
-  }
 
   private async validateAndCalculateOrder(
     items: Array<{
@@ -593,8 +521,15 @@ export class OrderService {
   async updateOrderStatus(
     orderId: string,
     status: OrderStatusEnum,
+    user: AuthTokenPayload,
   ): Promise<void> {
     try {
+      // if the user is not an admin, user should be the owner of the order and also can only do a cancel operation: canceled
+      if (user.role === 'customer' && status !== OrderStatusEnum.CANCELED) {
+        throw new BadRequestException(
+          'Only admin can update the status of the order',
+        );
+      }
       await this.OrderModel.updateOne(
         { _id: new Types.ObjectId(orderId) },
         { $set: { status } },

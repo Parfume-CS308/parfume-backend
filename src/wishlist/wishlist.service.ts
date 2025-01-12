@@ -52,10 +52,17 @@ export class WishlistService {
           `Fetching perfume with id ${perfumeId}`,
           'WishlistService.getWishlist',
         );
-        const perfume = await this.perfumeService.getPerfumeById(
-          (perfumeId as unknown as Types.ObjectId).toHexString(),
-        );
-        perfumeDetails.push(perfume);
+        try {
+          const perfume = await this.perfumeService.getPerfumeById(
+            (perfumeId as unknown as Types.ObjectId).toHexString(),
+          );
+          perfumeDetails.push(perfume);
+        } catch (error) {
+          this.logger.error(
+            `Failed to get perfume with id ${perfumeId}`,
+            error.stack,
+          );
+        }
       }
 
       return {

@@ -377,7 +377,6 @@ export class OrderController {
 
   @Post('updateStatus/:orderId/:status')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('product-manager')
   @ApiOperation({
     summary: 'Update the status of an order',
     description: 'Update the status of an order',
@@ -392,6 +391,7 @@ export class OrderController {
   async updateOrderStatus(
     @Res() res: Response,
     @Param() paramInput: UpdateOrderStatusDto,
+    @User() user: AuthTokenPayload,
   ): Promise<Response<MessageResponse>> {
     try {
       Logger.log(
@@ -401,6 +401,7 @@ export class OrderController {
       await this.orderService.updateOrderStatus(
         paramInput.orderId,
         paramInput.status,
+        user,
       );
       return res.json({
         message: 'Successfully updated the status of the order',

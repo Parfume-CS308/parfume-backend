@@ -3,6 +3,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -395,27 +396,32 @@ export class PerfumeService {
     });
 
     await distributor.save();
+    const updateQuery: any = {
+      name: updatePerfumeDto.name,
+      brand: updatePerfumeDto.brand,
+      notes: updatePerfumeDto.notes,
+      type: updatePerfumeDto.type,
+      season: updatePerfumeDto.season,
+      sillage: updatePerfumeDto.sillage,
+      longevity: updatePerfumeDto.longevity,
+      gender: updatePerfumeDto.gender,
+      description: updatePerfumeDto.description,
+      serialNumber: updatePerfumeDto.serialNumber,
+      warrantyStatus: updatePerfumeDto.warrantyStatus,
+      distributor: distributor._id,
+      categories: updatePerfumeDto.categories.map((categoryItem) => {
+        return new Types.ObjectId(categoryItem.id);
+      }),
+      variants: updatePerfumeDto.variants,
+    };
+    if (updatePerfumeDto.assetId) {
+      Logger.log('Found asset id, updating asset url');
+      updateQuery.assetUrl = `http://localhost:8016/productImage/${updatePerfumeDto.assetId}`;
+    }
+
     const updatedPerfume = await this.PerfumeModel.findByIdAndUpdate(
       perfumeId,
-      {
-        name: updatePerfumeDto.name,
-        brand: updatePerfumeDto.brand,
-        notes: updatePerfumeDto.notes,
-        type: updatePerfumeDto.type,
-        assetUrl: `http://localhost:8016/productImage/${updatePerfumeDto.assetId}`,
-        season: updatePerfumeDto.season,
-        sillage: updatePerfumeDto.sillage,
-        longevity: updatePerfumeDto.longevity,
-        gender: updatePerfumeDto.gender,
-        description: updatePerfumeDto.description,
-        serialNumber: updatePerfumeDto.serialNumber,
-        warrantyStatus: updatePerfumeDto.warrantyStatus,
-        distributor: distributor._id,
-        categories: updatePerfumeDto.categories.map((categoryItem) => {
-          return new Types.ObjectId(categoryItem.id);
-        }),
-        variants: updatePerfumeDto.variants,
-      },
+      updateQuery,
       { new: true },
     );
     if (!updatedPerfume) {
