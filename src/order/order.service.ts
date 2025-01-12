@@ -324,6 +324,54 @@ export class OrderService {
     );
   }
 
+  async sendRefundApprovedEmail(refundRequest: RefundRequest, user: User) {
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #333; text-align: center;">Refund Request Approved</h1>
+        <p>Dear ${user.firstName},</p>
+        
+        <p>We are happy to inform you that your refund request has been approved and processed successfully.</p>
+        
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <h3 style="margin-top: 0;">Refund Summary</h3>
+          <p>Order Number: ${refundRequest.order.invoiceNumber}</p>
+          <p>Total Refund Amount: $${refundRequest.totalRefundAmount.toFixed(2)}</p>
+        </div>
+        
+        <p>The refund amount will be credited to your original payment method within 3-5 business days. If you have any questions about your refund, please don't hesitate to contact our customer service team.</p>
+        
+        <p style="margin-top: 30px;">Best regards,<br>The Perfume Point Team</p>
+        
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px;">
+          <p>Perfume Point - Your Premium Fragrance Destination</p>
+          <p>This is an automated email, please do not reply directly to this message.</p>
+        </div>
+      </div>
+    `;
+
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.resend.com',
+      secure: true,
+      port: 465,
+      auth: {
+        user: 'resend',
+        pass: 're_MB44nE9S_FHpUwLFnQbUThBeVChevNCht',
+      },
+    });
+
+    await transporter.sendMail({
+      from: '"Perfume Point" <onboarding@resend.dev>',
+      to: user.email,
+      subject: `Perfume Point - Refund Request Approved`,
+      html: emailHtml,
+    });
+
+    Logger.log(
+      `Refund approved email sent to ${user.email}`,
+      'OrderService.sendRefundApprovedEmail',
+    );
+  }
+
   async createOrder(
     input: CreateOrderDto,
     userId: string,
@@ -434,7 +482,7 @@ export class OrderService {
       for (const item of perfumes) {
         await this.PerfumeModel.updateOne(
           {
-            _id: item.perfume._id,
+            _id: new Types.ObjectId(item.perfume.id as string),
             'variants.volume': item.volume,
           },
           {
@@ -867,6 +915,8 @@ export class OrderService {
           },
         );
       }
+      const user = await this.UserModel.findById(refundRequest.user);
+      await this.sendRefundApprovedEmail(refundRequest, user);
     } catch (error) {
       if (
         error instanceof NotFoundException ||
