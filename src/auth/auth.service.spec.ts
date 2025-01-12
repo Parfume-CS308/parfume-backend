@@ -4,6 +4,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../entities/user.entity';
 import { compare, hash } from 'bcryptjs';
+import { Types } from 'mongoose';
 
 jest.mock('bcryptjs', () => ({
   compare: jest.fn(),
@@ -20,8 +21,12 @@ describe('AuthService', () => {
 
   const mockUserModel = {
     create: jest.fn(),
-    findOne: jest.fn(),
-    findById: jest.fn(),
+    findOne: jest.fn().mockImplementation(() => ({
+      lean: jest.fn(),
+    })),
+    findById: jest.fn().mockImplementation(() => ({
+      lean: jest.fn(),
+    })),
     findByIdAndUpdate: jest.fn(),
   };
 
@@ -53,7 +58,7 @@ describe('AuthService', () => {
 
   it('should return user info if email and password are valid', async () => {
     const mockUser = {
-      _id: 'mockId',
+      _id: new Types.ObjectId(),
       email: 'test@example.com',
       password: 'hashedPassword',
       active: true,
@@ -63,7 +68,9 @@ describe('AuthService', () => {
       gender: 'male',
       role: 'customer',
     };
-    mockUserModel.findOne.mockResolvedValue(mockUser);
+    mockUserModel.findOne.mockReturnValueOnce({
+      lean: jest.fn().mockResolvedValueOnce(mockUser),
+    });
     (compare as jest.Mock).mockResolvedValue(true);
 
     const result = await service.validateUser('test@example.com', 'password');
@@ -74,7 +81,7 @@ describe('AuthService', () => {
     );
     expect(compare).toHaveBeenCalledWith('password', 'hashedPassword');
     expect(result).toEqual({
-      id: 'mockId',
+      id: mockUser._id.toHexString(),
       email: 'test@example.com',
       firstName: 'John',
       lastName: 'Doe',
