@@ -6,6 +6,7 @@ import { User } from '../entities/user.entity';
 import { compare, hash } from 'bcryptjs';
 import { Types } from 'mongoose';
 import { UnauthorizedException } from '@nestjs/common';
+import { UserRoleEnum } from 'src/enums/entity.enums';
 
 jest.mock('bcryptjs', () => ({
   compare: jest.fn(),
@@ -16,8 +17,8 @@ describe('AuthService', () => {
   let service: AuthService;
 
   const mockJwtService = {
-    sign: jest.fn(),
-    verify: jest.fn(),
+    signAsync: jest.fn(),
+    verifyAsync: jest.fn(),
   };
 
   const mockUserModel = {
@@ -116,6 +117,45 @@ describe('AuthService', () => {
 
     await expect(
       service.validateUser('test@example.com', 'password'),
+    ).rejects.toThrow();
+  });
+
+  it('should return tokens and user info on successful login', async () => {
+    const mockUser = {
+      id: 'mockId',
+      email: 'test@example.com',
+      firstName: 'John',
+      lastName: 'Doe',
+      age: 30,
+      gender: 'male',
+      role: 'customer' as UserRoleEnum,
+    };
+    jest.spyOn(service, 'validateUser').mockResolvedValue(mockUser);
+    mockJwtService.signAsync
+      .mockResolvedValueOnce('accessToken')
+      .mockResolvedValueOnce('refreshToken');
+
+    const result = await service.login({
+      email: 'test@example.com',
+      password: 'password',
+    });
+
+    expect(service.validateUser).toHaveBeenCalledWith(
+      'test@example.com',
+      'password',
+    );
+    expect(mockJwtService.signAsync).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({
+      access_token: 'accessToken',
+      refresh_token: 'refreshToken',
+      user: mockUser,
+    });
+  });
+
+  it('should throw InternalServerErrorException if an error occurs', async () => {
+    jest.spyOn(service, 'validateUser').mockRejectedValue(new Error());
+    await expect(
+      service.login({ email: 'test@example.com', password: 'password' }),
     ).rejects.toThrow();
   });
 });
