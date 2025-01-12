@@ -56,7 +56,7 @@ export class Perfume extends Document {
   @Prop({ type: Types.ObjectId, ref: Distributor.name })
   distributor: Distributor;
 
-  @Prop([{ type: Types.ObjectId, ref: Category.name }])
+  @Prop([{ type: Types.ObjectId, ref: 'categories' }])
   categories: Category[];
 
   @Prop([

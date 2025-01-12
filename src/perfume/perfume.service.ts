@@ -158,6 +158,26 @@ export class PerfumeService {
             perfume._id.toHexString(),
           );
 
+        const variants = await Promise.all(
+          perfume.variants.map(async (variant) => {
+            const originalPrice = variant.price;
+            const discountedPrice = activeDiscount
+              ? Math.floor(
+                  originalPrice * (1 - activeDiscount.discountRate / 100) * 100,
+                ) / 100
+              : originalPrice;
+
+            return {
+              volume: variant.volume,
+              price: originalPrice,
+              discountedPrice: discountedPrice,
+              discountRate: activeDiscount?.discountRate || 0,
+              stock: variant.stock,
+              active: variant.active,
+            };
+          }),
+        );
+
         return {
           id: perfume._id.toHexString(),
           name: perfume.name,
@@ -186,12 +206,7 @@ export class PerfumeService {
             name: category.name,
             description: category.description,
           })),
-          variants: perfume.variants.map((variant) => ({
-            volume: variant.volume,
-            price: variant.price,
-            stock: variant.stock,
-            active: variant.active,
-          })),
+          variants: variants,
           activeDiscount: activeDiscount
             ? {
                 name: activeDiscount.name,
@@ -222,7 +237,9 @@ export class PerfumeService {
       perfume.variants.map(async (variant) => {
         const originalPrice = variant.price;
         const discountedPrice = activeDiscount
-          ? originalPrice * (1 - activeDiscount.discountRate / 100)
+          ? Math.floor(
+              originalPrice * (1 - activeDiscount.discountRate / 100) * 100,
+            ) / 100
           : originalPrice;
 
         return {
@@ -257,13 +274,16 @@ export class PerfumeService {
         phone: perfume.distributor.phone,
         address: perfume.distributor.address,
       },
-      categories: perfume.categories.map((category) => {
-        return {
-          id: (category._id as Types.ObjectId).toHexString(),
-          name: category.name,
-          description: category.description,
-        };
-      }),
+      categories: await Promise.all(
+        perfume.categories.map(async (category) => {
+          const categoryDetails = await this.CategoryModel.findById(category);
+          return {
+            id: (category._id as Types.ObjectId).toHexString(),
+            name: categoryDetails.name,
+            description: categoryDetails.description,
+          };
+        }),
+      ),
       variants,
       activeDiscount: activeDiscount
         ? {
