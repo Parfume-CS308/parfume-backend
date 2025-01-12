@@ -5,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '../entities/user.entity';
 import { compare, hash } from 'bcryptjs';
 import { Types } from 'mongoose';
+import { UnauthorizedException } from '@nestjs/common';
 
 jest.mock('bcryptjs', () => ({
   compare: jest.fn(),
@@ -89,5 +90,32 @@ describe('AuthService', () => {
       gender: 'male',
       role: 'customer',
     });
+  });
+
+  it('should throw UnauthorizedException if user is not found', async () => {
+    mockUserModel.findOne.mockResolvedValue(null);
+    await expect(
+      service.validateUser('test@example.com', 'password'),
+    ).rejects.toThrow();
+  });
+
+  it('should throw UnauthorizedException if password is invalid', async () => {
+    const mockUser = { password: 'hashedPassword' };
+    mockUserModel.findOne.mockResolvedValue(mockUser);
+    (compare as jest.Mock).mockResolvedValue(false);
+
+    await expect(
+      service.validateUser('test@example.com', 'password'),
+    ).rejects.toThrow();
+  });
+
+  it('should throw UnauthorizedException if account is inactive', async () => {
+    const mockUser = { password: 'hashedPassword', active: false };
+    mockUserModel.findOne.mockResolvedValue(mockUser);
+    (compare as jest.Mock).mockResolvedValue(true);
+
+    await expect(
+      service.validateUser('test@example.com', 'password'),
+    ).rejects.toThrow();
   });
 });
