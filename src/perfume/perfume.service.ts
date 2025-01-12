@@ -252,10 +252,26 @@ export class PerfumeService {
           discountRate: activeDiscount?.discountRate || 0,
           stock: variant.stock,
           active: variant.active,
+          basePrice: variant.basePrice,
         };
       }),
     );
 
+    const categories = await Promise.all(
+      perfume.categories
+        .map(async (category) => {
+          const categoryDetails = await this.CategoryModel.findById(category);
+          if (!categoryDetails) {
+            return null;
+          }
+          return {
+            id: (categoryDetails._id as Types.ObjectId).toHexString(),
+            name: categoryDetails.name,
+            description: categoryDetails.description,
+          };
+        })
+        .filter((category) => category !== null),
+    );
     return {
       id: perfume._id.toString(),
       name: perfume.name,
@@ -277,16 +293,7 @@ export class PerfumeService {
         phone: perfume.distributor.phone,
         address: perfume.distributor.address,
       },
-      categories: await Promise.all(
-        perfume.categories.map(async (category) => {
-          const categoryDetails = await this.CategoryModel.findById(category);
-          return {
-            id: (category._id as Types.ObjectId).toHexString(),
-            name: categoryDetails.name,
-            description: categoryDetails.description,
-          };
-        }),
-      ),
+      categories: categories,
       variants,
       activeDiscount: activeDiscount
         ? {
