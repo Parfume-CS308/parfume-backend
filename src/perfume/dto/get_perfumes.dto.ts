@@ -9,7 +9,7 @@ import {
   Min,
   ValidateIf,
 } from 'class-validator';
-import { PerfumeTypeEnum } from 'src/enums/entity.enums';
+import { PerfumeTypeEnum } from '../../enums/entity.enums';
 
 export enum PerfumeSortingEnum {
   PRICE_ASC = 'price_asc',

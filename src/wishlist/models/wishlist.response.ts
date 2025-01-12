@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PerfumeTypeEnum } from 'src/enums/entity.enums';
-import { AllPerfumeItemDto } from 'src/perfume/models/all_perfumes.response';
+import { PerfumeTypeEnum } from '../../enums/entity.enums';
+import { AllPerfumeItemDto } from '../../perfume/models/all_perfumes.response';
 
 export class WishlistResponse {
   @ApiProperty({ example: 'Successfully fetched wishlist items' })

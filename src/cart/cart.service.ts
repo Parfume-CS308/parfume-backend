@@ -5,7 +5,7 @@ import { Cart } from '../entities/cart.entity';
 import { Perfume } from '../entities/perfume.entity';
 import { CartDetailDto } from './models/cart_details.response';
 import { SyncCartItemDto } from './dto/sync_cart.dto';
-import { DiscountService } from 'src/discount/discount.service';
+import { DiscountService } from '../discount/discount.service';
 
 @Injectable()
 export class CartService {
