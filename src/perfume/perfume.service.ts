@@ -15,8 +15,8 @@ import { PerfumeDetailDto } from './models/perfume_detail.response';
 import { PerfumeFilterDto, PerfumeSortingEnum } from './dto/get_perfumes.dto';
 import { DiscountService } from '../discount/discount.service';
 import { CreatePerfumeDto } from './dto/create_perfume.dto';
-import { Category } from 'src/entities/category.entity';
-import { Distributor } from 'src/entities/distributor.entity';
+import { Category } from '../entities/category.entity';
+import { Distributor } from '../entities/distributor.entity';
 
 @Injectable()
 export class PerfumeService {

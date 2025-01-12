@@ -4,7 +4,7 @@ import { Model, Types } from 'mongoose';
 import { Category } from '../entities/category.entity';
 import { CategoryInformation } from './interfaces/category-types';
 import { CreateCategoryDto } from './dto/create_category.dto';
-import { Perfume } from 'src/entities/perfume.entity';
+import { Perfume } from '../entities/perfume.entity';
 
 @Injectable()
 export class CategoryService {
