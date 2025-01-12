@@ -158,4 +158,71 @@ describe('AuthService', () => {
       service.login({ email: 'test@example.com', password: 'password' }),
     ).rejects.toThrow();
   });
+
+  it('should create a new user and return tokens', async () => {
+    const mockUser = {
+      _id: 'mockId',
+      email: 'test@example.com',
+      firstName: 'John',
+      lastName: 'Doe',
+      age: 30,
+      gender: 'male',
+      role: 'customer',
+    };
+    (hash as jest.Mock).mockResolvedValue('hashedPassword');
+    mockUserModel.create.mockResolvedValue(mockUser);
+    mockJwtService.signAsync
+      .mockResolvedValueOnce('accessToken')
+      .mockResolvedValueOnce('refreshToken');
+
+    const result = await service.signup({
+      email: 'test@example.com',
+      password: 'password',
+      firstName: 'John',
+      lastName: 'Doe',
+      age: 30,
+      gender: 'male',
+    });
+
+    expect(hash).toHaveBeenCalledWith('password', 10);
+    expect(mockUserModel.create).toHaveBeenCalledWith({
+      email: 'test@example.com',
+      password: 'hashedPassword',
+      firstName: 'John',
+      lastName: 'Doe',
+      age: 30,
+      gender: 'male',
+      active: true,
+      role: 'customer',
+    });
+    expect(mockJwtService.signAsync).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({
+      access_token: 'accessToken',
+      refresh_token: 'refreshToken',
+      user: {
+        id: 'mockId',
+        email: 'test@example.com',
+        firstName: 'John',
+        lastName: 'Doe',
+        age: 30,
+        gender: 'male',
+        role: 'customer',
+      },
+    });
+  });
+
+  it('should throw BadRequestException if email already exists', async () => {
+    mockUserModel.create.mockRejectedValue({ code: 11000 });
+
+    await expect(
+      service.signup({
+        email: 'test@example.com',
+        password: 'password',
+        firstName: 'John',
+        lastName: 'Doe',
+        age: 30,
+        gender: 'male',
+      }),
+    ).rejects.toThrow();
+  });
 });
