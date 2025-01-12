@@ -50,4 +50,37 @@ describe('AuthService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  it('should return user info if email and password are valid', async () => {
+    const mockUser = {
+      _id: 'mockId',
+      email: 'test@example.com',
+      password: 'hashedPassword',
+      active: true,
+      firstName: 'John',
+      lastName: 'Doe',
+      age: 30,
+      gender: 'male',
+      role: 'customer',
+    };
+    mockUserModel.findOne.mockResolvedValue(mockUser);
+    (compare as jest.Mock).mockResolvedValue(true);
+
+    const result = await service.validateUser('test@example.com', 'password');
+
+    expect(mockUserModel.findOne).toHaveBeenCalledWith(
+      { email: 'test@example.com' },
+      expect.any(Object),
+    );
+    expect(compare).toHaveBeenCalledWith('password', 'hashedPassword');
+    expect(result).toEqual({
+      id: 'mockId',
+      email: 'test@example.com',
+      firstName: 'John',
+      lastName: 'Doe',
+      age: 30,
+      gender: 'male',
+      role: 'customer',
+    });
+  });
 });
