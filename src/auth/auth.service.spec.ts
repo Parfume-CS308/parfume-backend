@@ -3,6 +3,12 @@ import { AuthService } from './auth.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../entities/user.entity';
+import { compare, hash } from 'bcryptjs';
+
+jest.mock('bcryptjs', () => ({
+  compare: jest.fn(),
+  hash: jest.fn(),
+}));
 
 describe('AuthService', () => {
   let service: AuthService;
